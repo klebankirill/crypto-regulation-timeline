@@ -1,45 +1,141 @@
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  padding: 20px;
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.light {
-  background: white;
-  color: black;
+/* ===== BODY ===== */
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #e2e8f0;
+  padding: 40px;
+  transition: all 0.3s ease;
+}
+
+/* ===== HEADER ===== */
+h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  letter-spacing: -0.5px;
+}
+
+/* ===== TOP BAR ===== */
+.top-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 button {
-  padding: 6px 10px;
-  margin: 5px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e2e8f0;
+  border-radius: 10px;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: 0.2s;
 }
 
+button:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+/* ===== SEARCH ===== */
 input {
-  padding: 6px;
-  margin: 5px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  margin-bottom: 20px;
+  width: 260px;
+  backdrop-filter: blur(10px);
 }
 
+/* ===== TABLE ===== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
 }
 
 th, td {
-  padding: 8px;
+  padding: 14px 16px;
+  text-align: left;
 }
 
 th {
-  background: #1e293b;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(255,255,255,0.05);
   cursor: pointer;
 }
 
-tr:nth-child(even) {
-  background: #1e293b;
+tr {
+  transition: 0.2s;
 }
 
-.green { color: #22c55e; }
-.red { color: #ef4444; }
-.star { cursor: pointer; }
+tr:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+td {
+  font-size: 14px;
+}
+
+/* ===== COLORS ===== */
+.green {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.red {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* ===== CARD EFFECT ===== */
+#portfolioTab {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(15px);
+}
+
+/* ===== CHART ===== */
+canvas {
+  margin-top: 30px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+}
+
+/* ===== LIGHT THEME ===== */
+.light {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.light table {
+  background: white;
+}
+
+.light th {
+  background: #f1f5f9;
+}
+
+.light input {
+  background: white;
+  color: black;
+}
