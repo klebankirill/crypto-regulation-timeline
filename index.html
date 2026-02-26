@@ -9,15 +9,21 @@
 </head>
 <body>
 
-<h1>🚀 Crypto Dashboard</h1>
+<div class="header">
+  <div class="logo">
+    🚀 <span>Crypto Dashboard</span>
+  </div>
 
-<div class="top-bar">
-  <button onclick="switchTab('market')">Market</button>
-  <button onclick="switchTab('portfolio')">My Portfolio</button>
-  <button onclick="toggleTheme()">🌙 Theme</button>
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="switchTab('market')">Market</button>
+    <button class="nav-btn" onclick="switchTab('portfolio')">Portfolio</button>
+    <button class="nav-btn theme-btn" onclick="toggleTheme()">🌙</button>
+  </div>
 </div>
 
-<input type="text" id="search" placeholder="Поиск монеты...">
+<div class="search-wrapper">
+  <input type="text" id="search" placeholder="🔎 Search cryptocurrency...">
+</div>
 
 <div id="marketTab">
   <table>
