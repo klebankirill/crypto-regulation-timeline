@@ -5,28 +5,35 @@ body {
   padding: 20px;
 }
 
-h1 {
-  margin-bottom: 20px;
+.light {
+  background: white;
+  color: black;
+}
+
+button {
+  padding: 6px 10px;
+  margin: 5px;
+  cursor: pointer;
 }
 
 input {
-  padding: 8px;
-  margin-bottom: 15px;
-  width: 250px;
+  padding: 6px;
+  margin: 5px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
 th, td {
-  padding: 10px;
-  text-align: left;
+  padding: 8px;
 }
 
 th {
   background: #1e293b;
+  cursor: pointer;
 }
 
 tr:nth-child(even) {
@@ -35,3 +42,4 @@ tr:nth-child(even) {
 
 .green { color: #22c55e; }
 .red { color: #ef4444; }
+.star { cursor: pointer; }
