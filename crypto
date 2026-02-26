@@ -1,0 +1,964 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..b194cf9cd7bc3db0c5502dc8ed3571a1d1d071b8
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,954 @@
++<!DOCTYPE html>
++<html lang="ru">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>Криптопортфель | Полноценный сайт-трекер</title>
++    <style>
++        * {
++            margin: 0;
++            padding: 0;
++            box-sizing: border-box;
++            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
++        }
++
++        body {
++            background: #f0f2f5;
++            min-height: 100vh;
++        }
++
++        .navbar {
++            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
++            padding: 1rem 2rem;
++            display: flex;
++            justify-content: space-between;
++            align-items: center;
++            color: white;
++            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
++            position: sticky;
++            top: 0;
++            z-index: 1000;
++        }
++
++        .logo {
++            display: flex;
++            align-items: center;
++            gap: 10px;
++            font-size: 24px;
++            font-weight: bold;
++        }
++
++        .logo span {
++            background: #e94560;
++            padding: 5px 10px;
++            border-radius: 10px;
++            font-size: 14px;
++        }
++
++        .nav-links {
++            display: flex;
++            gap: 20px;
++        }
++
++        .nav-link {
++            color: white;
++            text-decoration: none;
++            padding: 8px 16px;
++            border-radius: 8px;
++            transition: all 0.3s;
++            font-weight: 500;
++            cursor: pointer;
++        }
++
++        .nav-link:hover {
++            background: rgba(255,255,255,0.1);
++        }
++
++        .nav-link.active {
++            background: #e94560;
++        }
++
++        .container {
++            max-width: 1400px;
++            margin: 0 auto;
++            padding: 20px;
++        }
++
++        .page {
++            display: none;
++            animation: fadeIn 0.5s;
++        }
++
++        .page.active {
++            display: block;
++        }
++
++        @keyframes fadeIn {
++            from { opacity: 0; transform: translateY(20px); }
++            to { opacity: 1; transform: translateY(0); }
++        }
++
++        .stats-grid {
++            display: grid;
++            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
++            gap: 20px;
++            margin: 30px 0;
++        }
++
++        .stat-card {
++            background: white;
++            border-radius: 15px;
++            padding: 25px;
++            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
++            transition: transform 0.3s;
++            border: 1px solid rgba(0,0,0,0.05);
++        }
++
++        .stat-card:hover {
++            transform: translateY(-5px);
++            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
++        }
++
++        .stat-label {
++            color: #666;
++            font-size: 14px;
++            text-transform: uppercase;
++            letter-spacing: 1px;
++            margin-bottom: 10px;
++        }
++
++        .stat-value {
++            font-size: 32px;
++            font-weight: bold;
++            color: #1a1a2e;
++            margin-bottom: 5px;
++        }
++
++        .stat-change {
++            color: #4caf50;
++            font-size: 14px;
++        }
++
++        .stat-change.negative {
++            color: #e94560;
++        }
++
++        .card {
++            background: white;
++            border-radius: 15px;
++            padding: 25px;
++            margin: 20px 0;
++            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
++        }
++
++        .card h2 {
++            color: #1a1a2e;
++            margin-bottom: 20px;
++            font-size: 24px;
++        }
++
++        .table {
++            width: 100%;
++            border-collapse: collapse;
++        }
++
++        .table th {
++            text-align: left;
++            padding: 15px 10px;
++            background: #f8f9fa;
++            color: #1a1a2e;
++            font-weight: 600;
++            border-bottom: 2px solid #e94560;
++        }
++
++        .table td {
++            padding: 12px 10px;
++            border-bottom: 1px solid #eee;
++        }
++
++        .table tr:hover {
++            background: #f8f9fa;
++        }
++
++        .positive {
++            color: #4caf50;
++            font-weight: 600;
++        }
++
++        .negative {
++            color: #e94560;
++            font-weight: 600;
++        }
++
++        .badge {
++            padding: 4px 12px;
++            border-radius: 20px;
++            font-size: 12px;
++            font-weight: 600;
++            display: inline-block;
++        }
++
++        .badge.buy {
++            background: #4caf50;
++            color: white;
++        }
++
++        .badge.sell {
++            background: #e94560;
++            color: white;
++        }
++
++        .chart-container {
++            display: flex;
++            justify-content: center;
++            align-items: flex-end;
++            gap: 30px;
++            height: 300px;
++            margin: 30px 0;
++            padding: 20px 0;
++        }
++
++        .bar-wrapper {
++            display: flex;
++            flex-direction: column;
++            align-items: center;
++            width: 80px;
++        }
++
++        .bar {
++            width: 50px;
++            background: linear-gradient(180deg, #1a1a2e, #16213e);
++            border-radius: 10px 10px 0 0;
++            transition: height 0.5s;
++            margin-bottom: 10px;
++            min-height: 5px;
++        }
++
++        .bar-label {
++            font-weight: 600;
++            color: #1a1a2e;
++        }
++
++        .bar-value {
++            font-size: 12px;
++            color: #666;
++        }
++
++        .btn-group {
++            display: flex;
++            gap: 15px;
++            margin: 20px 0;
++            flex-wrap: wrap;
++        }
++
++        .btn {
++            padding: 12px 25px;
++            border: none;
++            border-radius: 8px;
++            font-size: 16px;
++            font-weight: 600;
++            cursor: pointer;
++            transition: all 0.3s;
++        }
++
++        .btn-primary {
++            background: #1a1a2e;
++            color: white;
++        }
++
++        .btn-primary:hover {
++            background: #16213e;
++            transform: translateY(-2px);
++            box-shadow: 0 5px 15px rgba(26,26,46,0.3);
++        }
++
++        .btn-success {
++            background: #4caf50;
++            color: white;
++        }
++
++        .btn-success:hover {
++            background: #45a049;
++            transform: translateY(-2px);
++        }
++
++        .btn-danger {
++            background: #e94560;
++            color: white;
++        }
++
++        .btn-danger:hover {
++            background: #d63b55;
++            transform: translateY(-2px);
++        }
++
++        .filters {
++            display: flex;
++            gap: 15px;
++            margin: 20px 0;
++            flex-wrap: wrap;
++        }
++
++        .filter-input {
++            padding: 10px 15px;
++            border: 2px solid #e0e0e0;
++            border-radius: 8px;
++            font-size: 16px;
++            flex: 1;
++            min-width: 200px;
++        }
++
++        .filter-input:focus {
++            outline: none;
++            border-color: #1a1a2e;
++        }
++
++        .filter-select {
++            padding: 10px 15px;
++            border: 2px solid #e0e0e0;
++            border-radius: 8px;
++            font-size: 16px;
++            background: white;
++            min-width: 150px;
++        }
++
++        .info-block {
++            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
++            color: white;
++            padding: 30px;
++            border-radius: 15px;
++            margin: 30px 0;
++        }
++
++        .info-block h3 {
++            font-size: 24px;
++            margin-bottom: 15px;
++        }
++
++        .info-block p {
++            font-size: 18px;
++            line-height: 1.6;
++            opacity: 0.95;
++        }
++
++        footer {
++            text-align: center;
++            padding: 30px;
++            color: #666;
++            font-size: 14px;
++            border-top: 1px solid #ddd;
++            margin-top: 40px;
++        }
++
++        @media (max-width: 768px) {
++            .navbar {
++                flex-direction: column;
++                gap: 15px;
++            }
++
++            .nav-links {
++                width: 100%;
++                justify-content: center;
++            }
++
++            .chart-container {
++                gap: 15px;
++            }
++
++            .bar-wrapper {
++                width: 50px;
++            }
++
++            .bar {
++                width: 30px;
++            }
++        }
++    </style>
++</head>
++<body>
++    <nav class="navbar">
++        <div class="logo">
++            📊 Криптопортфель <span>DEMO</span>
++        </div>
++        <div class="nav-links">
++            <a class="nav-link active" onclick="showPage('home', this)">🏠 Главная</a>
++            <a class="nav-link" onclick="showPage('analytics', this)">📊 Аналитика</a>
++            <a class="nav-link" onclick="showPage('history', this)">📜 История</a>
++            <a class="nav-link" onclick="showPage('about', this)">ℹ️ О проекте</a>
++        </div>
++    </nav>
++
++    <div id="home" class="page active">
++        <div class="container">
++            <div class="info-block">
++                <h3>🚀 Добро пожаловать в криптопортфель-трекер</h3>
++                <p>Отслеживайте свои инвестиции в криптовалюты, анализируйте прибыль и управляйте активами в реальном времени.</p>
++            </div>
++
++            <div class="stats-grid" id="homeStats">
++                <div class="stat-card">
++                    <div class="stat-label">Общая стоимость</div>
++                    <div class="stat-value" id="totalValue">$0</div>
++                    <div class="stat-change" id="totalChange">Загрузка...</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Прибыль/Убыток</div>
++                    <div class="stat-value" id="totalProfit">$0</div>
++                    <div class="stat-change" id="profitPercent">0%</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Активов</div>
++                    <div class="stat-value" id="assetsCount">0</div>
++                    <div class="stat-change">в портфеле</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Лучший актив</div>
++                    <div class="stat-value" id="bestAsset">—</div>
++                    <div class="stat-change" id="bestAssetChange">+0%</div>
++                </div>
++            </div>
++
++            <div class="btn-group">
++                <button class="btn btn-primary" onclick="updatePrices()">🔄 Обновить цены</button>
++                <button class="btn btn-success" onclick="addRandomTransaction()">➕ Добавить сделку</button>
++                <button class="btn btn-danger" onclick="resetPortfolio()">🔄 Сбросить</button>
++            </div>
++
++            <div class="card">
++                <h2>📋 Текущий портфель</h2>
++                <table class="table" id="portfolioTable">
++                    <thead>
++                        <tr>
++                            <th>Актив</th>
++                            <th>Количество</th>
++                            <th>Цена</th>
++                            <th>Стоимость</th>
++                            <th>Средняя цена</th>
++                            <th>Прибыль</th>
++                        </tr>
++                    </thead>
++                    <tbody id="portfolioBody"></tbody>
++                </table>
++            </div>
++
++            <div class="card">
++                <h2>📊 Распределение портфеля</h2>
++                <div class="chart-container" id="homeChart"></div>
++            </div>
++        </div>
++    </div>
++
++    <div id="analytics" class="page">
++        <div class="container">
++            <div class="info-block">
++                <h3>📊 Детальная аналитика</h3>
++                <p>Глубокий анализ вашего портфеля: распределение, доходность по активам и риски.</p>
++            </div>
++
++            <div class="stats-grid">
++                <div class="stat-card">
++                    <div class="stat-label">Самый доходный</div>
++                    <div class="stat-value" id="mostProfitable">—</div>
++                    <div class="stat-change positive" id="mostProfitablePercent">+0%</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Самый убыточный</div>
++                    <div class="stat-value" id="leastProfitable">—</div>
++                    <div class="stat-change negative" id="leastProfitablePercent">0%</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Общая инвестиция</div>
++                    <div class="stat-value" id="totalInvestment">$0</div>
++                    <div class="stat-change">вложено</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Доходность</div>
++                    <div class="stat-value" id="roi">0%</div>
++                    <div class="stat-change">ROI</div>
++                </div>
++            </div>
++
++            <div class="card">
++                <h2>📈 Доходность по активам</h2>
++                <table class="table" id="analyticsTable">
++                    <thead>
++                        <tr>
++                            <th>Актив</th>
++                            <th>Вложено</th>
++                            <th>Текущая стоимость</th>
++                            <th>Прибыль</th>
++                            <th>Доходность</th>
++                            <th>Доля</th>
++                        </tr>
++                    </thead>
++                    <tbody id="analyticsBody"></tbody>
++                </table>
++            </div>
++
++            <div class="card">
++                <h2>💡 Рекомендации</h2>
++                <div id="recommendations"></div>
++            </div>
++        </div>
++    </div>
++
++    <div id="history" class="page">
++        <div class="container">
++            <div class="info-block">
++                <h3>📜 История транзакций</h3>
++                <p>Все операции с активами: покупки, продажи и изменения.</p>
++            </div>
++
++            <div class="filters">
++                <input type="text" class="filter-input" id="historySearch" placeholder="🔍 Поиск по активу..." onkeyup="filterHistory()">
++                <select class="filter-select" id="historyType" onchange="filterHistory()">
++                    <option value="all">Все операции</option>
++                    <option value="buy">Только покупки</option>
++                    <option value="sell">Только продажи</option>
++                </select>
++            </div>
++
++            <div class="card">
++                <table class="table" id="historyTable">
++                    <thead>
++                        <tr>
++                            <th>Дата</th>
++                            <th>Тип</th>
++                            <th>Актив</th>
++                            <th>Количество</th>
++                            <th>Цена</th>
++                            <th>Сумма</th>
++                        </tr>
++                    </thead>
++                    <tbody id="historyBody"></tbody>
++                </table>
++            </div>
++        </div>
++    </div>
++
++    <div id="about" class="page">
++        <div class="container">
++            <div class="info-block">
++                <h3>ℹ️ О проекте</h3>
++                <p>Исследовательский проект по обществознанию и информатике</p>
++            </div>
++
++            <div class="card">
++                <h2>🎯 Тема проекта</h2>
++                <p style="font-size: 18px; line-height: 1.6; margin-bottom: 20px;">
++                    <strong>«Криптоактивы: эволюция от анонимного инструмента к регулируемому активу.
++                    Правовые и социальные аспекты»</strong>
++                </p>
++                <p style="color: #666; line-height: 1.6;">
++                    Данный трекер демонстрирует практическое применение криптовалют и показывает,
++                    почему государственное регулирование становится необходимым: с ростом капитализации
++                    и количества инвесторов возрастают риски и потребность в защите прав участников рынка.
++                </p>
++            </div>
++
++            <div class="stats-grid">
++                <div class="stat-card">
++                    <div class="stat-label">Автор</div>
++                    <div class="stat-value" style="font-size: 24px;">[Ваше имя]</div>
++                    <div class="stat-change">ученик(ца) [класс] класса</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Предметы</div>
++                    <div class="stat-value" style="font-size: 24px;">2</div>
++                    <div class="stat-change">Обществознание + Информатика</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Технологии</div>
++                    <div class="stat-value" style="font-size: 24px;">HTML/CSS/JS</div>
++                    <div class="stat-change">Чистый код, без библиотек</div>
++                </div>
++                <div class="stat-card">
++                    <div class="stat-label">Данные</div>
++                    <div class="stat-value" style="font-size: 24px;">Демо</div>
++                    <div class="stat-change">Для презентации</div>
++                </div>
++            </div>
++
++            <div class="card">
++                <h2>🔗 Связь с темой</h2>
++                <ul style="list-style: none; padding: 0;">
++                    <li style="padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
++                        <span style="background: #1a1a2e; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">1</span>
++                        <span><strong>Анонимность:</strong> В трекере не хранятся личные данные — как и в реальных криптовалютах</span>
++                    </li>
++                    <li style="padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
++                        <span style="background: #1a1a2e; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">2</span>
++                        <span><strong>Волатильность:</strong> Цены постоянно меняются — как на реальном рынке</span>
++                    </li>
++                    <li style="padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
++                        <span style="background: #1a1a2e; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">3</span>
++                        <span><strong>Регулирование:</strong> Трекер показывает необходимость учёта и контроля — как и государственное регулирование</span>
++                    </li>
++                    <li style="padding: 15px; display: flex; align-items: center; gap: 15px;">
++                        <span style="background: #1a1a2e; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">4</span>
++                        <span><strong>Инвестиции:</strong> Демонстрирует, почему люди вкладываются в криптоактивы</span>
++                    </li>
++                </ul>
++            </div>
++
++            <div class="card">
++                <h2>📚 Источники</h2>
++                <ul style="list-style: none; padding: 0;">
++                    <li style="padding: 10px 0;">• ЦБ РФ — Политика в отношении криптовалют</li>
++                    <li style="padding: 10px 0;">• Европейский парламент — Регламент MiCA</li>
++                    <li style="padding: 10px 0;">• Открытые данные криптовалютных бирж</li>
++                    <li style="padding: 10px 0;">• Научные статьи по экономике и праву</li>
++                </ul>
++            </div>
++        </div>
++    </div>
++
++    <footer>
++        © 2025 | Проект по обществознанию и информатике | Все данные демонстрационные
++    </footer>
++
++    <script>
++        let portfolio = [
++            { symbol: 'BTC', name: 'Bitcoin', amount: 0.5, avgPrice: 45000 },
++            { symbol: 'ETH', name: 'Ethereum', amount: 5, avgPrice: 2800 },
++            { symbol: 'BNB', name: 'Binance Coin', amount: 10, avgPrice: 350 },
++            { symbol: 'SOL', name: 'Solana', amount: 30, avgPrice: 80 },
++            { symbol: 'ADA', name: 'Cardano', amount: 1000, avgPrice: 0.45 },
++            { symbol: 'DOT', name: 'Polkadot', amount: 50, avgPrice: 12 },
++            { symbol: 'MATIC', name: 'Polygon', amount: 500, avgPrice: 0.9 }
++        ];
++
++        let prices = {
++            BTC: 52000,
++            ETH: 3100,
++            BNB: 420,
++            SOL: 110,
++            ADA: 0.52,
++            DOT: 14.5,
++            MATIC: 1.1
++        };
++
++        let transactions = [
++            { type: 'buy', symbol: 'BTC', amount: 0.5, price: 45000, date: '2024-01-15' },
++            { type: 'buy', symbol: 'ETH', amount: 5, price: 2800, date: '2024-01-20' },
++            { type: 'buy', symbol: 'SOL', amount: 30, price: 80, date: '2024-02-01' },
++            { type: 'buy', symbol: 'ADA', amount: 1000, price: 0.45, date: '2024-02-10' },
++            { type: 'sell', symbol: 'BTC', amount: 0.1, price: 51000, date: '2024-02-15' },
++            { type: 'buy', symbol: 'DOT', amount: 50, price: 12, date: '2024-02-20' },
++            { type: 'buy', symbol: 'MATIC', amount: 500, price: 0.9, date: '2024-02-25' }
++        ];
++
++        function showPage(pageId, linkEl) {
++            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
++            document.getElementById(pageId).classList.add('active');
++
++            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
++            if (linkEl) linkEl.classList.add('active');
++
++            if (pageId === 'home') updateHomePage();
++            if (pageId === 'analytics') updateAnalyticsPage();
++            if (pageId === 'history') updateHistoryPage();
++        }
++
++        function updatePrices() {
++            Object.keys(prices).forEach(sym => {
++                const change = (Math.random() * 10 - 5) / 100;
++                prices[sym] = prices[sym] * (1 + change);
++            });
++
++            updateAllPages();
++            showNotification('Цены обновлены', 'success');
++        }
++
++        function addRandomTransaction() {
++            const symbols = ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'DOT', 'MATIC'];
++            const types = ['buy', 'sell'];
++
++            const symbol = symbols[Math.floor(Math.random() * symbols.length)];
++            const type = types[Math.floor(Math.random() * types.length)];
++
++            const asset = portfolio.find(a => a.symbol === symbol);
++
++            if (type === 'buy') {
++                const amount = Math.random() * 2 + 0.1;
++                const price = prices[symbol] * (0.9 + Math.random() * 0.2);
++
++                if (asset) {
++                    const totalValue = asset.amount * asset.avgPrice + amount * price;
++                    asset.amount += amount;
++                    asset.avgPrice = totalValue / asset.amount;
++                } else {
++                    portfolio.push({ symbol, name: getAssetName(symbol), amount, avgPrice: price });
++                }
++
++                transactions.unshift({ type: 'buy', symbol, amount, price, date: new Date().toLocaleDateString('ru-RU') });
++            } else if (asset && asset.amount > 0) {
++                const amount = Math.random() * asset.amount * 0.5;
++                const price = prices[symbol] * (0.9 + Math.random() * 0.2);
++
++                asset.amount -= amount;
++
++                if (asset.amount < 0.001) {
++                    portfolio = portfolio.filter(a => a.symbol !== symbol);
++                }
++
++                transactions.unshift({ type: 'sell', symbol, amount, price, date: new Date().toLocaleDateString('ru-RU') });
++            }
++
++            updateAllPages();
++            showNotification('Сделка добавлена', 'success');
++        }
++
++        function resetPortfolio() {
++            portfolio = [
++                { symbol: 'BTC', name: 'Bitcoin', amount: 0.5, avgPrice: 45000 },
++                { symbol: 'ETH', name: 'Ethereum', amount: 5, avgPrice: 2800 },
++                { symbol: 'BNB', name: 'Binance Coin', amount: 10, avgPrice: 350 },
++                { symbol: 'SOL', name: 'Solana', amount: 30, avgPrice: 80 },
++                { symbol: 'ADA', name: 'Cardano', amount: 1000, avgPrice: 0.45 },
++                { symbol: 'DOT', name: 'Polkadot', amount: 50, avgPrice: 12 },
++                { symbol: 'MATIC', name: 'Polygon', amount: 500, avgPrice: 0.9 }
++            ];
++
++            prices = { BTC: 52000, ETH: 3100, BNB: 420, SOL: 110, ADA: 0.52, DOT: 14.5, MATIC: 1.1 };
++
++            transactions = [
++                { type: 'buy', symbol: 'BTC', amount: 0.5, price: 45000, date: '2024-01-15' },
++                { type: 'buy', symbol: 'ETH', amount: 5, price: 2800, date: '2024-01-20' },
++                { type: 'buy', symbol: 'SOL', amount: 30, price: 80, date: '2024-02-01' },
++                { type: 'buy', symbol: 'ADA', amount: 1000, price: 0.45, date: '2024-02-10' },
++                { type: 'sell', symbol: 'BTC', amount: 0.1, price: 51000, date: '2024-02-15' },
++                { type: 'buy', symbol: 'DOT', amount: 50, price: 12, date: '2024-02-20' },
++                { type: 'buy', symbol: 'MATIC', amount: 500, price: 0.9, date: '2024-02-25' }
++            ];
++
++            updateAllPages();
++            showNotification('Портфель сброшен', 'info');
++        }
++
++        function getAssetName(symbol) {
++            const names = {
++                BTC: 'Bitcoin',
++                ETH: 'Ethereum',
++                BNB: 'Binance Coin',
++                SOL: 'Solana',
++                ADA: 'Cardano',
++                DOT: 'Polkadot',
++                MATIC: 'Polygon'
++            };
++            return names[symbol] || symbol;
++        }
++
++        function showNotification(message) {
++            console.log(message);
++        }
++
++        function updateAllPages() {
++            updateHomePage();
++            updateAnalyticsPage();
++            updateHistoryPage();
++        }
++
++        function updateHomePage() {
++            let totalValue = 0;
++            let totalCost = 0;
++            let bestAsset = null;
++            let bestChange = -Infinity;
++
++            portfolio.forEach(asset => {
++                const currentPrice = prices[asset.symbol] || 0;
++                const value = asset.amount * currentPrice;
++                const cost = asset.amount * asset.avgPrice;
++
++                totalValue += value;
++                totalCost += cost;
++
++                const change = ((currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
++                if (change > bestChange) {
++                    bestChange = change;
++                    bestAsset = asset;
++                }
++            });
++
++            const profit = totalValue - totalCost;
++            const profitPercent = totalCost > 0 ? (profit / totalCost) * 100 : 0;
++
++            document.getElementById('totalValue').textContent = '$' + totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 });
++            document.getElementById('totalProfit').textContent = (profit >= 0 ? '+' : '') + '$' + profit.toLocaleString(undefined, { maximumFractionDigits: 0 });
++            document.getElementById('profitPercent').textContent = (profitPercent >= 0 ? '+' : '') + profitPercent.toFixed(1) + '%';
++            document.getElementById('assetsCount').textContent = portfolio.length;
++            document.getElementById('totalChange').textContent = 'обновлено только что';
++
++            if (bestAsset) {
++                document.getElementById('bestAsset').textContent = bestAsset.symbol;
++                document.getElementById('bestAssetChange').textContent = (bestChange >= 0 ? '+' : '') + bestChange.toFixed(1) + '%';
++                document.getElementById('bestAssetChange').className = 'stat-change ' + (bestChange >= 0 ? '' : 'negative');
++            }
++
++            let tableHtml = '';
++            portfolio.sort((a, b) => prices[b.symbol] * b.amount - prices[a.symbol] * a.amount);
++
++            portfolio.forEach(asset => {
++                const currentPrice = prices[asset.symbol] || 0;
++                const value = asset.amount * currentPrice;
++                const assetProfit = (currentPrice - asset.avgPrice) * asset.amount;
++                const assetProfitPercent = ((currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
++
++                tableHtml += `
++                    <tr>
++                        <td><strong>${asset.symbol}</strong> ${asset.name}</td>
++                        <td>${asset.amount.toFixed(4)}</td>
++                        <td>$${currentPrice.toFixed(2)}</td>
++                        <td>$${value.toFixed(2)}</td>
++                        <td>$${asset.avgPrice.toFixed(2)}</td>
++                        <td class="${assetProfit >= 0 ? 'positive' : 'negative'}">
++                            ${assetProfit >= 0 ? '+' : ''}$${assetProfit.toFixed(2)} (${assetProfitPercent >= 0 ? '+' : ''}${assetProfitPercent.toFixed(1)}%)
++                        </td>
++                    </tr>
++                `;
++            });
++
++            document.getElementById('portfolioBody').innerHTML = tableHtml;
++
++            let chartHtml = '';
++            const maxValue = Math.max(...portfolio.map(a => prices[a.symbol] * a.amount));
++
++            portfolio.slice(0, 5).forEach(asset => {
++                const value = prices[asset.symbol] * asset.amount;
++                const percent = (value / maxValue) * 100;
++
++                chartHtml += `
++                    <div class="bar-wrapper">
++                        <div class="bar" style="height: ${percent * 2}px;"></div>
++                        <div class="bar-label">${asset.symbol}</div>
++                        <div class="bar-value">$${value.toFixed(0)}</div>
++                    </div>
++                `;
++            });
++
++            document.getElementById('homeChart').innerHTML = chartHtml;
++        }
++
++        function updateAnalyticsPage() {
++            let totalInvestment = 0;
++            let totalValue = 0;
++            let bestProfit = -Infinity;
++            let bestAsset = null;
++            let worstProfit = Infinity;
++            let worstAsset = null;
++
++            portfolio.forEach(asset => {
++                const currentPrice = prices[asset.symbol] || 0;
++                const investment = asset.amount * asset.avgPrice;
++                const value = asset.amount * currentPrice;
++
++                totalInvestment += investment;
++                totalValue += value;
++
++                const profit = ((currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
++
++                if (profit > bestProfit) {
++                    bestProfit = profit;
++                    bestAsset = asset;
++                }
++                if (profit < worstProfit) {
++                    worstProfit = profit;
++                    worstAsset = asset;
++                }
++            });
++
++            const roi = totalInvestment > 0 ? ((totalValue - totalInvestment) / totalInvestment) * 100 : 0;
++
++            document.getElementById('mostProfitable').textContent = bestAsset ? bestAsset.symbol : '—';
++            document.getElementById('mostProfitablePercent').textContent = (bestProfit >= 0 ? '+' : '') + bestProfit.toFixed(1) + '%';
++            document.getElementById('leastProfitable').textContent = worstAsset ? worstAsset.symbol : '—';
++            document.getElementById('leastProfitablePercent').textContent = worstProfit.toFixed(1) + '%';
++            document.getElementById('totalInvestment').textContent = '$' + totalInvestment.toLocaleString(undefined, { maximumFractionDigits: 0 });
++            document.getElementById('roi').textContent = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
++
++            let tableHtml = '';
++            portfolio.forEach(asset => {
++                const currentPrice = prices[asset.symbol] || 0;
++                const investment = asset.amount * asset.avgPrice;
++                const value = asset.amount * currentPrice;
++                const profit = value - investment;
++                const profitPercent = ((currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
++                const share = (value / totalValue) * 100;
++
++                tableHtml += `
++                    <tr>
++                        <td><strong>${asset.symbol}</strong> ${asset.name}</td>
++                        <td>$${investment.toFixed(2)}</td>
++                        <td>$${value.toFixed(2)}</td>
++                        <td class="${profit >= 0 ? 'positive' : 'negative'}">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}</td>
++                        <td class="${profitPercent >= 0 ? 'positive' : 'negative'}">${profitPercent >= 0 ? '+' : ''}${profitPercent.toFixed(1)}%</td>
++                        <td>${share.toFixed(1)}%</td>
++                    </tr>
++                `;
++            });
++
++            document.getElementById('analyticsBody').innerHTML = tableHtml;
++
++            let recommendations = '';
++            if (bestProfit > 20) {
++                recommendations += `<p style="color: #4caf50; margin: 10px 0;">✅ Рассмотрите фиксацию прибыли по ${bestAsset.symbol}</p>`;
++            }
++            if (worstProfit < -15) {
++                recommendations += `<p style="color: #e94560; margin: 10px 0;">⚠️ Усредняйте позицию по ${worstAsset.symbol} или фиксируйте убыток</p>`;
++            }
++            if (portfolio.length < 3) {
++                recommendations += '<p style="color: #f39c12; margin: 10px 0;">📊 Добавьте активы для диверсификации</p>';
++            } else {
++                recommendations += '<p style="color: #4caf50; margin: 10px 0;">✅ Хорошая диверсификация</p>';
++            }
++
++            document.getElementById('recommendations').innerHTML = recommendations || '<p>Нет рекомендаций</p>';
++        }
++
++        function updateHistoryPage() {
++            filterHistory();
++        }
++
++        function filterHistory() {
++            const search = document.getElementById('historySearch').value.toLowerCase();
++            const type = document.getElementById('historyType').value;
++
++            let filtered = transactions;
++
++            if (type !== 'all') {
++                filtered = filtered.filter(t => t.type === type);
++            }
++
++            if (search) {
++                filtered = filtered.filter(t => t.symbol.toLowerCase().includes(search));
++            }
++
++            let tableHtml = '';
++            filtered.forEach(t => {
++                tableHtml += `
++                    <tr>
++                        <td>${t.date}</td>
++                        <td><span class="badge ${t.type}">${t.type === 'buy' ? 'ПОКУПКА' : 'ПРОДАЖА'}</span></td>
++                        <td><strong>${t.symbol}</strong></td>
++                        <td>${t.amount.toFixed(4)}</td>
++                        <td>$${t.price.toFixed(2)}</td>
++                        <td>$${(t.amount * t.price).toFixed(2)}</td>
++                    </tr>
++                `;
++            });
++
++            if (filtered.length === 0) {
++                tableHtml = '<tr><td colspan="6" style="text-align: center; padding: 30px;">Нет транзакций</td></tr>';
++            }
++
++            document.getElementById('historyBody').innerHTML = tableHtml;
++        }
++
++        window.onload = function() {
++            updateHomePage();
++            updateAnalyticsPage();
++            updateHistoryPage();
++        };
++    </script>
++</body>
++</html>
+ 
+EOF
+)
