@@ -1,27 +1,32 @@
 const table = document.getElementById("cryptoTable");
 const searchInput = document.getElementById("search");
+const portfolioTable = document.getElementById("portfolioTable");
 
 let coins = [];
+let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
+let chart;
 
 async function fetchCoins() {
   const res = await fetch(
     "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1"
   );
-
   coins = await res.json();
   render(coins);
 }
 
 function render(data) {
   table.innerHTML = "";
-
   data.forEach((coin, index) => {
     const changeClass =
       coin.price_change_percentage_24h > 0 ? "green" : "red";
 
+    const star = favorites.includes(coin.id) ? "⭐" : "☆";
+
     table.innerHTML += `
-      <tr>
+      <tr onclick="loadChart('${coin.id}')">
         <td>${index + 1}</td>
+        <td class="star" onclick="toggleFavorite(event,'${coin.id}')">${star}</td>
         <td>${coin.name}</td>
         <td>$${coin.current_price}</td>
         <td class="${changeClass}">
@@ -33,6 +38,17 @@ function render(data) {
   });
 }
 
+function toggleFavorite(e, id) {
+  e.stopPropagation();
+  if (favorites.includes(id)) {
+    favorites = favorites.filter(f => f !== id);
+  } else {
+    favorites.push(id);
+  }
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+  render(coins);
+}
+
 searchInput.addEventListener("input", () => {
   const value = searchInput.value.toLowerCase();
   const filtered = coins.filter(c =>
@@ -41,5 +57,89 @@ searchInput.addEventListener("input", () => {
   render(filtered);
 });
 
+function sortBy(key) {
+  coins.sort((a, b) => b[key] - a[key]);
+  render(coins);
+}
+
+async function loadChart(id) {
+  const res = await fetch(
+    `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`
+  );
+  const data = await res.json();
+
+  const prices = data.prices.map(p => p[1]);
+  const labels = data.prices.map(p =>
+    new Date(p[0]).toLocaleDateString()
+  );
+
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("chartCanvas"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: id,
+        data: prices
+      }]
+    }
+  });
+}
+
+function addToPortfolio() {
+  const coin = document.getElementById("coinInput").value;
+  const amount = parseFloat(document.getElementById("amountInput").value);
+
+  portfolio.push({ coin, amount });
+  localStorage.setItem("portfolio", JSON.stringify(portfolio));
+  renderPortfolio();
+}
+
+function renderPortfolio() {
+  portfolioTable.innerHTML = "";
+  let total = 0;
+
+  portfolio.forEach(async (asset, index) => {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`
+    );
+    const data = await res.json();
+    const price = data[asset.coin]?.usd || 0;
+    const value = price * asset.amount;
+    total += value;
+
+    portfolioTable.innerHTML += `
+      <tr>
+        <td>${asset.coin}</td>
+        <td>${asset.amount}</td>
+        <td>$${value.toFixed(2)}</td>
+        <td><button onclick="removePortfolio(${index})">X</button></td>
+      </tr>
+    `;
+
+    document.getElementById("portfolioTotal").innerText =
+      "Общая стоимость: $" + total.toFixed(2);
+  });
+}
+
+function removePortfolio(i) {
+  portfolio.splice(i, 1);
+  localStorage.setItem("portfolio", JSON.stringify(portfolio));
+  renderPortfolio();
+}
+
+function switchTab(tab) {
+  document.getElementById("marketTab").style.display =
+    tab === "market" ? "block" : "none";
+  document.getElementById("portfolioTab").style.display =
+    tab === "portfolio" ? "block" : "none";
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+}
+
 fetchCoins();
-setInterval(fetchCoins, 60000); // автообновление каждую минуту
+renderPortfolio();
+setInterval(fetchCoins, 60000);
