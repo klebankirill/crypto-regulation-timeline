@@ -1,0 +1,45 @@
+const table = document.getElementById("cryptoTable");
+const searchInput = document.getElementById("search");
+
+let coins = [];
+
+async function fetchCoins() {
+  const res = await fetch(
+    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1"
+  );
+
+  coins = await res.json();
+  render(coins);
+}
+
+function render(data) {
+  table.innerHTML = "";
+
+  data.forEach((coin, index) => {
+    const changeClass =
+      coin.price_change_percentage_24h > 0 ? "green" : "red";
+
+    table.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${coin.name}</td>
+        <td>$${coin.current_price}</td>
+        <td class="${changeClass}">
+          ${coin.price_change_percentage_24h.toFixed(2)}%
+        </td>
+        <td>$${coin.market_cap.toLocaleString()}</td>
+      </tr>
+    `;
+  });
+}
+
+searchInput.addEventListener("input", () => {
+  const value = searchInput.value.toLowerCase();
+  const filtered = coins.filter(c =>
+    c.name.toLowerCase().includes(value)
+  );
+  render(filtered);
+});
+
+fetchCoins();
+setInterval(fetchCoins, 60000); // автообновление каждую минуту
