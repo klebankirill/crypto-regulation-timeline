@@ -4,25 +4,60 @@
   <meta charset="UTF-8">
   <title>Crypto Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <h1>🚀 Crypto Dashboard</h1>
 
+<div class="top-bar">
+  <button onclick="switchTab('market')">Market</button>
+  <button onclick="switchTab('portfolio')">My Portfolio</button>
+  <button onclick="toggleTheme()">🌙 Theme</button>
+</div>
+
 <input type="text" id="search" placeholder="Поиск монеты...">
 
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Монета</th>
-      <th>Цена</th>
-      <th>24h %</th>
-      <th>Market Cap</th>
-    </tr>
-  </thead>
-  <tbody id="cryptoTable"></tbody>
-</table>
+<div id="marketTab">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>★</th>
+        <th onclick="sortBy('name')">Монета</th>
+        <th onclick="sortBy('current_price')">Цена</th>
+        <th onclick="sortBy('price_change_percentage_24h')">24h %</th>
+        <th onclick="sortBy('market_cap')">Market Cap</th>
+      </tr>
+    </thead>
+    <tbody id="cryptoTable"></tbody>
+  </table>
+</div>
+
+<div id="portfolioTab" style="display:none;">
+  <h2>My Portfolio</h2>
+
+  <input id="coinInput" placeholder="bitcoin">
+  <input id="amountInput" type="number" placeholder="Количество">
+  <button onclick="addToPortfolio()">Добавить</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Монета</th>
+        <th>Количество</th>
+        <th>Стоимость</th>
+        <th>X</th>
+      </tr>
+    </thead>
+    <tbody id="portfolioTable"></tbody>
+  </table>
+
+  <h3 id="portfolioTotal">Общая стоимость: $0</h3>
+</div>
+
+<h2 id="chartTitle"></h2>
+<canvas id="chartCanvas" height="100"></canvas>
 
 <script src="script.js"></script>
 </body>
