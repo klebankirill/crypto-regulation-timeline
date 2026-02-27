@@ -1,50 +1,83 @@
-/* CLICKABLE LOGO */
-.logo {
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-.logo:hover {
-  transform: translateY(-2px);
-  opacity: 0.8;
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family:'Inter', sans-serif;
+  background:linear-gradient(135deg,#0f172a,#020617);
+  color:#e2e8f0;
+  padding:40px;
 }
 
-/* PORTFOLIO INPUTS */
-.portfolio-inputs {
-  display: flex;
-  gap: 12px;
-  margin: 20px 0;
+.header {
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:25px;
 }
 
-.portfolio-inputs input {
-  width: 220px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: white;
-  font-size: 14px;
-  backdrop-filter: blur(10px);
-  transition: 0.2s ease;
+.logo span {
+  background:linear-gradient(90deg,#38bdf8,#6366f1);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
 
-.portfolio-inputs input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
+.nav-btn {
+  padding:8px 16px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:#e2e8f0;
+  cursor:pointer;
 }
 
-.portfolio-inputs button {
-  padding: 12px 18px;
-  border-radius: 14px;
-  border: none;
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
+.search-wrapper input {
+  width:320px;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:white;
+  margin-bottom:30px;
 }
 
-.portfolio-inputs button:hover {
-  transform: translateY(-2px);
-  opacity: 0.9;
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:rgba(255,255,255,0.04);
+  border-radius:16px;
+  overflow:hidden;
 }
+
+th,td { padding:14px; }
+
+th {
+  background:rgba(255,255,255,0.05);
+  cursor:pointer;
+  font-size:13px;
+}
+
+tr:hover { background:rgba(255,255,255,0.06); }
+
+.green { color:#22c55e; font-weight:600; }
+.red { color:#ef4444; font-weight:600; }
+
+th span {
+  font-size:12px;
+  margin-left:6px;
+  opacity:0.8;
+}
+
+#chartContainer { height:400px; margin-top:30px; }
+
+canvas {
+  width:100%;
+  height:100%;
+  background:rgba(255,255,255,0.04);
+  border-radius:16px;
+}
+
+body.light {
+  background:#f8fafc;
+  color:#0f172a;
+}
+
+body.light table { background:white; }
+body.light th { background:#f1f5f9; }
