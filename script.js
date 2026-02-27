@@ -1,162 +1,336 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/script.js b/script.js
-index c3ab79d6a06a73fb2818f9164bcb5f7f2bc1cc17..362dc1e1d8efcaca2ee7f3031c5573695a1c7fef 100644
---- a/script.js
-+++ b/script.js
-@@ -1,45 +1,54 @@
- const table = document.getElementById("cryptoTable");
- const searchInput = document.getElementById("search");
- const portfolioTable = document.getElementById("portfolioTable");
- 
- let coins = [];
- let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
- let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
- let chart = null;
- 
- const headers = {
-   "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
- };
- 
- async function fetchCoins() {
-  try {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&price_change_percentage=1h,24h,7d",
-      { headers }
-    );
+const API_BASE = "https://api.coingecko.com/api/v3";
+const MARKET_URL = `${API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=1h,24h,7d`;
+const STORAGE_KEYS = {
+  favorites: "favorites",
+  portfolio: "portfolio",
+  theme: "theme"
+};
 
-    if (!res.ok) {
-      throw new Error(`Failed to load market data: ${res.status}`);
-    }
+const headers = {
+  "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
+};
 
-    coins = await res.json();
-    renderCoins(coins);
-  } catch (error) {
-    console.error(error);
+const table = document.getElementById("cryptoTable");
+const searchInput = document.getElementById("search");
+const portfolioTable = document.getElementById("portfolioTable");
+const portfolioTotal = document.getElementById("portfolioTotal");
+const marketTab = document.getElementById("marketTab");
+const portfolioTab = document.getElementById("portfolioTab");
+const themeBtn = document.getElementById("themeBtn");
+
+const sortOrder = {
+  price: "desc",
+  market_cap: "desc",
+  change_1h: "desc",
+  change_24h: "desc",
+  change_7d: "desc"
+};
+
+let coins = [];
+let filteredCoins = [];
+let favorites = JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites)) || [];
+let portfolio = JSON.parse(localStorage.getItem(STORAGE_KEYS.portfolio)) || [];
+let chart = null;
+let chartAbortController = null;
+const chartCache = new Map();
+
+const usdCurrency = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 2
+});
+
+function debounce(fn, delay = 300) {
+  let timerId;
+  return (...args) => {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => fn(...args), delay);
+  };
+}
+
+function setTheme(theme) {
+  document.body.classList.toggle("light", theme === "light");
+  themeBtn.textContent = theme === "light" ? "☀️" : "🌙";
+  localStorage.setItem(STORAGE_KEYS.theme, theme);
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains("light");
+  setTheme(isLight ? "dark" : "light");
+}
+
+function switchTab(tabName) {
+  const isMarket = tabName === "market";
+  marketTab.style.display = isMarket ? "block" : "none";
+  portfolioTab.style.display = isMarket ? "none" : "block";
+}
+
+function goHome() {
+  switchTab("market");
+  searchInput.value = "";
+  filteredCoins = [...coins];
+  renderCoins(filteredCoins);
+}
+
+function saveFavorites() {
+  localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(favorites));
+}
+
+function savePortfolio() {
+  localStorage.setItem(STORAGE_KEYS.portfolio, JSON.stringify(portfolio));
+}
+
+function updateSortArrows(activeKey) {
+  Object.keys(sortOrder).forEach((key) => {
+    const el = document.getElementById(`sort-${key}`);
+    if (!el) return;
+    el.textContent = key === activeKey ? (sortOrder[key] === "desc" ? "↓" : "↑") : "";
+  });
+}
+
+function metricByKey(coin, key) {
+  switch (key) {
+    case "price":
+      return coin.current_price || 0;
+    case "market_cap":
+      return coin.market_cap || 0;
+    case "change_1h":
+      return coin.price_change_percentage_1h_in_currency || 0;
+    case "change_24h":
+      return coin.price_change_percentage_24h || 0;
+    case "change_7d":
+      return coin.price_change_percentage_7d_in_currency || 0;
+    default:
+      return 0;
   }
- }
- 
- function renderCoins(data) {
-   table.innerHTML = "";
- 
-   data.forEach((coin, index) => {
-     const c1 = coin.price_change_percentage_1h_in_currency || 0;
-     const c24 = coin.price_change_percentage_24h || 0;
-     const c7 = coin.price_change_percentage_7d_in_currency || 0;
- 
-     const star = favorites.includes(coin.id) ? "⭐" : "☆";
- 
-     table.innerHTML += `
-       <tr onclick="loadChart('${coin.id}')">
-         <td>${index + 1}</td>
-         <td onclick="toggleFavorite(event,'${coin.id}')">${star}</td>
-         <td>${coin.name}</td>
-         <td>$${coin.current_price.toLocaleString()}</td>
-         <td>$${coin.market_cap.toLocaleString()}</td>
-         <td class="${c1>=0?"green":"red"}">${c1.toFixed(2)}%</td>
-         <td class="${c24>=0?"green":"red"}">${c24.toFixed(2)}%</td>
-         <td class="${c7>=0?"green":"red"}">${c7.toFixed(2)}%</td>
-       </tr>
-     `;
-   });
-@@ -74,87 +83,102 @@ function updateSortArrows(active){
-     if(!el) return;
-     el.innerHTML = key===active
-       ? (sortOrder[key]==="desc"?" ↓":" ↑")
-       : "";
-   });
- }
- 
- function sortBy(key){
-   coins.sort((a,b)=>{
-     let A,B;
-     if(key==="price"){A=a.current_price;B=b.current_price;}
-     if(key==="market_cap"){A=a.market_cap;B=b.market_cap;}
-     if(key==="change_1h"){A=a.price_change_percentage_1h_in_currency||0;B=b.price_change_percentage_1h_in_currency||0;}
-     if(key==="change_24h"){A=a.price_change_percentage_24h||0;B=b.price_change_percentage_24h||0;}
-     if(key==="change_7d"){A=a.price_change_percentage_7d_in_currency||0;B=b.price_change_percentage_7d_in_currency||0;}
- 
-     return sortOrder[key]==="desc" ? B-A : A-B;
-   });
- 
-   updateSortArrows(key);
-   sortOrder[key]=sortOrder[key]==="desc"?"asc":"desc";
-   renderCoins(coins);
- }
- 
- async function loadChart(id){
-  try {
-    const res=await fetch(
-      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`,
-      { headers }
-    );
+}
 
-    if (!res.ok) {
-      throw new Error(`Failed to load chart data for ${id}: ${res.status}`);
+function sortBy(key) {
+  filteredCoins.sort((a, b) => {
+    const delta = metricByKey(a, key) - metricByKey(b, key);
+    return sortOrder[key] === "desc" ? -delta : delta;
+  });
+
+  updateSortArrows(key);
+  sortOrder[key] = sortOrder[key] === "desc" ? "asc" : "desc";
+  renderCoins(filteredCoins);
+}
+
+function renderCoins(data) {
+  const rows = data.map((coin, index) => {
+    const c1 = coin.price_change_percentage_1h_in_currency || 0;
+    const c24 = coin.price_change_percentage_24h || 0;
+    const c7 = coin.price_change_percentage_7d_in_currency || 0;
+    const star = favorites.includes(coin.id) ? "⭐" : "☆";
+
+    return `
+      <tr data-coin-id="${coin.id}">
+        <td>${index + 1}</td>
+        <td><button class="favorite-btn" data-favorite-id="${coin.id}" aria-label="Избранное">${star}</button></td>
+        <td>${coin.name}</td>
+        <td>${usdCurrency.format(coin.current_price || 0)}</td>
+        <td>${usdCurrency.format(coin.market_cap || 0)}</td>
+        <td class="${c1 >= 0 ? "green" : "red"}">${c1.toFixed(2)}%</td>
+        <td class="${c24 >= 0 ? "green" : "red"}">${c24.toFixed(2)}%</td>
+        <td class="${c7 >= 0 ? "green" : "red"}">${c7.toFixed(2)}%</td>
+      </tr>
+    `;
+  }).join("");
+
+  table.innerHTML = rows || "<tr><td colspan='8'>Нет данных</td></tr>";
+}
+
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
+async function fetchCoins() {
+  try {
+    coins = await fetchJson(MARKET_URL);
+    filteredCoins = [...coins];
+    renderCoins(filteredCoins);
+  } catch (error) {
+    console.error("Ошибка загрузки рынка:", error);
+    table.innerHTML = "<tr><td colspan='8'>Не удалось загрузить данные рынка</td></tr>";
+  }
+}
+
+function toggleFavorite(coinId) {
+  if (favorites.includes(coinId)) {
+    favorites = favorites.filter((id) => id !== coinId);
+  } else {
+    favorites.push(coinId);
+  }
+
+  saveFavorites();
+  renderCoins(filteredCoins);
+}
+
+async function loadChart(coinId) {
+  try {
+    if (chartAbortController) {
+      chartAbortController.abort();
     }
 
-    const data=await res.json();
-    const prices=data.prices.map(p=>p[1]);
-    const labels=data.prices.map(p=>new Date(p[0]).toLocaleDateString());
+    if (!chartCache.has(coinId)) {
+      chartAbortController = new AbortController();
+      const data = await fetchJson(
+        `${API_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=7`,
+        { signal: chartAbortController.signal }
+      );
+      chartCache.set(coinId, data.prices);
+    }
 
-    if(chart) chart.destroy();
+    const prices = chartCache.get(coinId);
+    const labels = prices.map((point) => new Date(point[0]).toLocaleDateString());
+    const values = prices.map((point) => point[1]);
 
-    chart=new Chart(document.getElementById("chartCanvas"),{
-      type:"line",
-      data:{labels,datasets:[{label:id,data:prices,borderWidth:2,tension:0.3}]},
-      options:{responsive:true,maintainAspectRatio:false}
+    if (chart) chart.destroy();
+
+    chart = new Chart(document.getElementById("chartCanvas"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: coinId,
+          data: values,
+          borderWidth: 2,
+          borderColor: "#38bdf8",
+          tension: 0.3,
+          pointRadius: 0
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
     });
   } catch (error) {
-    console.error(error);
+    if (error.name !== "AbortError") {
+      console.error("Ошибка загрузки графика:", error);
+    }
   }
- }
- 
- function addToPortfolio(){
-   const coin=document.getElementById("coinInput").value.toLowerCase();
-   const amount=parseFloat(document.getElementById("amountInput").value);
-   if(!coin||!amount) return;
- 
-   portfolio.push({coin,amount});
-   localStorage.setItem("portfolio",JSON.stringify(portfolio));
-   renderPortfolio();
- }
- 
- async function renderPortfolio(){
-   portfolioTable.innerHTML="";
-   let total=0;
- 
-   for(let i=0;i<portfolio.length;i++){
-     const asset=portfolio[i];
-     const res=await fetch(
-     `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset.coin)}&vs_currencies=usd`,
-       { headers }
-     );
+}
 
-    if (!res.ok) {
-      console.error(`Failed to load portfolio price for ${asset.coin}: ${res.status}`);
-      continue;
+function addToPortfolio() {
+  const coinInput = document.getElementById("coinInput");
+  const amountInput = document.getElementById("amountInput");
+
+  const coin = coinInput.value.trim().toLowerCase();
+  const amount = Number(amountInput.value);
+
+  if (!coin || !Number.isFinite(amount) || amount <= 0) {
+    return;
+  }
+
+  portfolio.push({ coin, amount });
+  savePortfolio();
+  coinInput.value = "";
+  amountInput.value = "";
+  renderPortfolio();
+}
+
+async function renderPortfolio() {
+  if (portfolio.length === 0) {
+    portfolioTable.innerHTML = "";
+    portfolioTotal.textContent = "Общая стоимость: $0.00";
+    return;
+  }
+
+  const uniqueCoins = [...new Set(portfolio.map((asset) => asset.coin))];
+
+  try {
+    const pricesData = await fetchJson(
+      `${API_BASE}/simple/price?ids=${encodeURIComponent(uniqueCoins.join(","))}&vs_currencies=usd`
+    );
+
+    let total = 0;
+    const rows = portfolio.map((asset, index) => {
+      const price = pricesData[asset.coin]?.usd || 0;
+      const value = price * asset.amount;
+      total += value;
+
+      return `
+        <tr>
+          <td>${asset.coin}</td>
+          <td>${asset.amount}</td>
+          <td>${usdCurrency.format(value)}</td>
+          <td><button class="remove-btn" data-remove-index="${index}">X</button></td>
+        </tr>
+      `;
+    }).join("");
+
+    portfolioTable.innerHTML = rows;
+    portfolioTotal.textContent = `Общая стоимость: ${usdCurrency.format(total)}`;
+  } catch (error) {
+    console.error("Ошибка загрузки портфеля:", error);
+    portfolioTable.innerHTML = "<tr><td colspan='4'>Не удалось загрузить цены портфеля</td></tr>";
+  }
+}
+
+function removePortfolio(index) {
+  portfolio.splice(index, 1);
+  savePortfolio();
+  renderPortfolio();
+}
+
+function setupEventListeners() {
+  document.querySelectorAll("[data-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+
+  document.getElementById("logoBtn").addEventListener("click", goHome);
+  document.getElementById("addPortfolioBtn").addEventListener("click", addToPortfolio);
+  themeBtn.addEventListener("click", toggleTheme);
+
+  document.querySelectorAll("th[data-sort]").forEach((th) => {
+    th.addEventListener("click", () => sortBy(th.dataset.sort));
+  });
+
+  table.addEventListener("click", (event) => {
+    const favoriteBtn = event.target.closest(".favorite-btn");
+    if (favoriteBtn) {
+      event.stopPropagation();
+      toggleFavorite(favoriteBtn.dataset.favoriteId);
+      return;
     }
 
-     const data=await res.json();
-     const price=data[asset.coin]?.usd||0;
-     const value=price*asset.amount;
-     total+=value;
- 
-     portfolioTable.innerHTML+=`
-       <tr>
-         <td>${asset.coin}</td>
-         <td>${asset.amount}</td>
-         <td>$${value.toFixed(2)}</td>
-         <td><button onclick="removePortfolio(${i})">X</button></td>
-       </tr>
-     `;
-   }
- 
-   document.getElementById("portfolioTotal").innerText=
-     "Общая стоимость: $"+total.toFixed(2);
- }
- 
- function removePortfolio(i){
-   portfolio.splice(i,1);
-   localStorage.setItem("portfolio",JSON.stringify(portfolio));
-   renderPortfolio();
- }
+    const row = event.target.closest("tr[data-coin-id]");
+    if (row) {
+      loadChart(row.dataset.coinId);
+    }
+  });
+
+  portfolioTable.addEventListener("click", (event) => {
+    const removeBtn = event.target.closest(".remove-btn");
+    if (removeBtn) {
+      removePortfolio(Number(removeBtn.dataset.removeIndex));
+    }
+  });
+
+  const onSearch = debounce((query) => {
+    const q = query.trim().toLowerCase();
+    filteredCoins = q
+      ? coins.filter((coin) => coin.name.toLowerCase().includes(q) || coin.symbol.toLowerCase().includes(q))
+      : [...coins];
+    renderCoins(filteredCoins);
+  }, 250);
+
+  searchInput.addEventListener("input", (event) => onSearch(event.target.value));
+}
+
+function bootstrap() {
+  const savedTheme = localStorage.getItem(STORAGE_KEYS.theme) || "dark";
+  setTheme(savedTheme);
+  setupEventListeners();
+  fetchCoins();
+  renderPortfolio();
+}
+
+bootstrap();
