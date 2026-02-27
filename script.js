@@ -63,22 +63,47 @@ searchInput.addEventListener("input", ()=>{
   renderCoins(coins.filter(c=>c.name.toLowerCase().includes(value)));
 });
 
-// ==================== SORT ====================
-let sortOrder = { price:'desc', market_cap:'desc', change_1h:'desc', change_24h:'desc', change_7d:'desc' };
+// ==================== SORT WITH ARROWS ====================
+let sortOrder = { 
+  name: 'asc', 
+  price:'desc', 
+  market_cap:'desc', 
+  change_1h:'desc', 
+  change_24h:'desc', 
+  change_7d:'desc' 
+};
+
 function sortBy(key){
   coins.sort((a,b)=>{
     let vA=0,vB=0;
     switch(key){
+      case 'name': vA=a.name.toLowerCase(); vB=b.name.toLowerCase(); break;
       case 'price': vA=a.current_price; vB=b.current_price; break;
       case 'market_cap': vA=a.market_cap; vB=b.market_cap; break;
       case 'change_1h': vA=a.price_change_percentage_1h_in_currency||0; vB=b.price_change_percentage_1h_in_currency||0; break;
       case 'change_24h': vA=a.price_change_percentage_24h||0; vB=b.price_change_percentage_24h||0; break;
       case 'change_7d': vA=a.price_change_percentage_7d_in_currency||0; vB=b.price_change_percentage_7d_in_currency||0; break;
     }
-    return sortOrder[key]=='desc'?vB-vA:vA-vB;
+    if(typeof vA==='string') return sortOrder[key]=='asc'? vA.localeCompare(vB) : vB.localeCompare(vA);
+    return sortOrder[key]=='desc'? vB-vA : vA-vB;
   });
+
+  updateSortArrows(key);
   sortOrder[key] = sortOrder[key]=='desc'?'asc':'desc';
   renderCoins(coins);
+}
+
+function updateSortArrows(activeKey){
+  const keys = ['name','price','market_cap','change_1h','change_24h','change_7d'];
+  keys.forEach(k=>{
+    const span = document.getElementById('sort-'+k);
+    if(!span) return;
+    if(k===activeKey){
+      span.innerHTML = sortOrder[k]=='desc'? ' ↓' : ' ↑';
+    } else {
+      span.innerHTML = '';
+    }
+  });
 }
 
 // ==================== LOAD CHART ====================
@@ -92,7 +117,11 @@ async function loadChart(id){
     const prices = data.prices.map(p=>p[1]);
     const labels = data.prices.map(p=>new Date(p[0]).toLocaleDateString());
     if(chart) chart.destroy();
-    chart = new Chart(canvas.getContext("2d"),{type:'line',data:{labels,datasets:[{label:id.toUpperCase(),data:prices,borderWidth:2,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false}});
+    chart = new Chart(canvas.getContext("2d"),{
+      type:'line',
+      data:{labels,datasets:[{label:id.toUpperCase(),data:prices,borderWidth:2,tension:0.3}]},
+      options:{responsive:true,maintainAspectRatio:false}
+    });
     setTimeout(()=>chart.resize(),200);
   }catch(e){console.error(e);}
 }
