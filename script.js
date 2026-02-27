@@ -151,6 +151,12 @@ async function renderPortfolio(){
       `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset.coin)}&vs_currencies=usd`,
       { headers }
     );
+    
+     if (!res.ok) {
+      console.error(`Failed to load portfolio price for ${asset.coin}: ${res.status}`);
+      continue;
+    }
+    
     const data=await res.json();
     const price=data[asset.coin]?.usd||0;
     const value=price*asset.amount;
