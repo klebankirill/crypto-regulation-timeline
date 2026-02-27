@@ -31,10 +31,27 @@ async function fetchCoins() {
   }
 }
 
+function render(data) {
+  table.innerHTML = "";
+  data.forEach((coin, index) => {
+    const changeClass =
+      coin.price_change_percentage_24h > 0 ? "green" : "red";
 
+    const star = favorites.includes(coin.id) ? "⭐" : "☆";
 
-  document.getElementById("portfolioTotal").innerText =
-    "Общая стоимость: $" + total.toFixed(2);
+    table.innerHTML += `
+      <tr onclick="loadChart('${coin.id}')">
+        <td>${index + 1}</td>
+        <td class="star" onclick="toggleFavorite(event,'${coin.id}')">${star}</td>
+        <td>${coin.name}</td>
+        <td>$${coin.current_price}</td>
+        <td class="${changeClass}">
+          ${coin.price_change_percentage_24h.toFixed(2)}%
+        </td>
+        <td>$${coin.market_cap.toLocaleString()}</td>
+      </tr>
+    `;
+  });
 }
 
 function toggleFavorite(e, id) {
@@ -163,7 +180,7 @@ fetchCoins();
 renderPortfolio();
 setInterval(fetchCoins, 60000);
 
-
+}
 function goHome() {
   switchTab('market');
   window.scrollTo({ top: 0, behavior: "smooth" });
