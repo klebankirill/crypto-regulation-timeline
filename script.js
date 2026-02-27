@@ -31,27 +31,38 @@ async function fetchCoins() {
   }
 }
 
-function render(data) {
-  table.innerHTML = "";
-  data.forEach((coin, index) => {
-    const changeClass =
-      coin.price_change_percentage_24h > 0 ? "green" : "red";
+async function renderPortfolio() {
+  portfolioTable.innerHTML = "";
+  let total = 0;
 
-    const star = favorites.includes(coin.id) ? "⭐" : "☆";
+  for (let i = 0; i < portfolio.length; i++) {
+    const asset = portfolio[i];
 
-    table.innerHTML += `
-      <tr onclick="loadChart('${coin.id}')">
-        <td>${index + 1}</td>
-        <td class="star" onclick="toggleFavorite(event,'${coin.id}')">${star}</td>
-        <td>${coin.name}</td>
-        <td>$${coin.current_price}</td>
-        <td class="${changeClass}">
-          ${coin.price_change_percentage_24h.toFixed(2)}%
-        </td>
-        <td>$${coin.market_cap.toLocaleString()}</td>
-      </tr>
-    `;
-  });
+    try {
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`
+      );
+
+      const data = await res.json();
+      const price = data[asset.coin]?.usd || 0;
+      const value = price * asset.amount;
+      total += value;
+
+      portfolioTable.innerHTML += `
+        <tr>
+          <td>${asset.coin}</td>
+          <td>${asset.amount}</td>
+          <td>$${value.toFixed(2)}</td>
+          <td><button onclick="removePortfolio(${i})">X</button></td>
+        </tr>
+      `;
+    } catch (error) {
+      console.error("Portfolio error:", error);
+    }
+  }
+
+  document.getElementById("portfolioTotal").innerText =
+    "Общая стоимость: $" + total.toFixed(2);
 }
 
 function toggleFavorite(e, id) {
