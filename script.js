@@ -241,5 +241,5 @@ function goHome() {
 }
 
 headers: {
-  "x-cg-demo-api-key" "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
+  "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
 }
