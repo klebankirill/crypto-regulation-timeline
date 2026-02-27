@@ -186,3 +186,9 @@ body.light input {
 #portfolioTab button:hover {
   background: #dc2626;
 }
+
+th span {
+  font-size: 12px;
+  margin-left: 6px;
+  opacity: 0.8;
+}
