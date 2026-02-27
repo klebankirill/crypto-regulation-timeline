@@ -83,34 +83,46 @@ function sortBy(key) {
 
 async function loadChart(id) {
   try {
+    const canvas = document.getElementById("chartCanvas");
+    if (!canvas) return;
+
     const res = await fetch(
       `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`
     );
 
-    if (!res.ok) throw new Error("Chart error");
+    if (!res.ok) throw new Error("Chart API error");
 
     const data = await res.json();
+
+    if (!data.prices) return;
 
     const prices = data.prices.map(p => p[1]);
     const labels = data.prices.map(p =>
       new Date(p[0]).toLocaleDateString()
     );
 
-    if (chart) chart.destroy();
+    if (chart instanceof Chart) {
+      chart.destroy();
+    }
 
-    chart = new Chart(document.getElementById("chartCanvas"), {
+    chart = new Chart(canvas, {
       type: "line",
       data: {
         labels,
         datasets: [{
-          label: id,
-          data: prices
+          label: id.toUpperCase(),
+          data: prices,
+          tension: 0.3
         }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
       }
     });
 
   } catch (error) {
-    console.error("Ошибка графика:", error);
+    console.error("Chart error:", error);
   }
 }
 
