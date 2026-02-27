@@ -19,13 +19,16 @@ async function fetchCoins() {
     if (!res.ok) throw new Error("API error");
 
     coins = await res.json();
+
+    if (!Array.isArray(coins)) return;
+
     render(coins);
 
   } catch (error) {
     console.error("Ошибка загрузки:", error);
     table.innerHTML = `
       <tr>
-        <td colspan="6">⚠️ Не удалось загрузить данные. Попробуйте позже.</td>
+        <td colspan="6">⚠️ Не удалось загрузить данные</td>
       </tr>
     `;
   }
