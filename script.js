@@ -219,7 +219,7 @@ function toggleTheme() {
 
 fetchCoins();
 renderPortfolio();
-setInterval(fetchCoins, 60000);
+setInterval(fetchCoins, 180000); // каждые 3 минуты
 
 function goHome() {
   switchTab('market');
