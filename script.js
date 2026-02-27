@@ -105,30 +105,30 @@ function sortBy(key){
 }
 
 async function loadChart(id){
-  const res=await fetch(
-    `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`,
-    { headers }
-  );
-  const data=await res.json();
-  const prices=data.prices.map(p=>p[1]);
-  const labels=data.prices.map(p=>new Date(p[0]).toLocaleDateString());
+  try {
+    const res=await fetch(
+      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`,
+      { headers }
+    );
 
-  if(chart) chart.destroy();
+    if (!res.ok) {
+      throw new Error(`Failed to load chart data for ${id}: ${res.status}`);
+    }
 
-  chart=new Chart(document.getElementById("chartCanvas"),{
-    type:"line",
-    data:{labels,datasets:[{label:id,data:prices,borderWidth:2,tension:0.3}]},
-    options:{responsive:true,maintainAspectRatio:false}
-  });
-}
+    const data=await res.json();
+    const prices=data.prices.map(p=>p[1]);
+    const labels=data.prices.map(p=>new Date(p[0]).toLocaleDateString());
 
-function addToPortfolio(){
-  const coin=document.getElementById("coinInput").value.toLowerCase();
-  const amount=parseFloat(document.getElementById("amountInput").value);
-  if(!coin||!amount) return;
+    if(chart) chart.destroy();
 
-  portfolio.push({coin,amount});
-  localStorage.setItem("portfolio",JSON.stringify(portfolio));
+    chart=new Chart(document.getElementById("chartCanvas"),{
+      type:"line",
+      data:{labels,datasets:[{label:id,data:prices,borderWidth:2,tension:0.3}]},
+      options:{responsive:true,maintainAspectRatio:false}
+    });
+  } catch (error) {
+    console.error(error);
+  }
   renderPortfolio();
 }
 
