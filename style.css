@@ -15,131 +15,6 @@ body {
 }
 
 /* ===== HEADER ===== */
-h1 {
-  font-size: 32px;
-  font-weight: 600;
-  margin-bottom: 30px;
-  letter-spacing: -0.5px;
-}
-
-/* ===== TOP BAR ===== */
-.top-bar {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-button {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #e2e8f0;
-  border-radius: 10px;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: 0.2s;
-}
-
-button:hover {
-  background: rgba(255,255,255,0.1);
-  transform: translateY(-2px);
-}
-
-/* ===== SEARCH ===== */
-input {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: white;
-  margin-bottom: 20px;
-  width: 260px;
-  backdrop-filter: blur(10px);
-}
-
-/* ===== TABLE ===== */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 16px;
-  overflow: hidden;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-}
-
-th, td {
-  padding: 14px 16px;
-  text-align: left;
-}
-
-th {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  background: rgba(255,255,255,0.05);
-  cursor: pointer;
-}
-
-tr {
-  transition: 0.2s;
-}
-
-tr:hover {
-  background: rgba(255,255,255,0.06);
-}
-
-td {
-  font-size: 14px;
-}
-
-/* ===== COLORS ===== */
-.green {
-  color: #22c55e;
-  font-weight: 600;
-}
-
-.red {
-  color: #ef4444;
-  font-weight: 600;
-}
-
-/* ===== CARD EFFECT ===== */
-#portfolioTab {
-  margin-top: 20px;
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(15px);
-}
-
-/* ===== CHART ===== */
-canvas {
-  margin-top: 30px;
-  padding: 20px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-}
-
-/* ===== LIGHT THEME ===== */
-.light {
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-.light table {
-  background: white;
-}
-
-.light th {
-  background: #f1f5f9;
-}
-
-.light input {
-  background: white;
-  color: black;
-}
-/* ===== HEADER ===== */
 .header {
   display: flex;
   justify-content: space-between;
@@ -153,6 +28,7 @@ canvas {
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
 }
 
 .logo span {
@@ -208,9 +84,80 @@ canvas {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
 }
-.logo {
+
+/* ===== TABLE ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(255,255,255,0.05);
   cursor: pointer;
 }
-#chartContainer {
-  height: 400px;
+
+tr {
+  transition: 0.2s;
+}
+
+tr:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+td {
+  font-size: 14px;
+}
+
+.green { color: #22c55e; font-weight: 600; }
+.red { color: #ef4444; font-weight: 600; }
+.star { cursor: pointer; }
+
+/* ===== PORTFOLIO CARD ===== */
+#portfolioTab {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(15px);
+}
+
+/* ===== CHART ===== */
+#chartContainer { height: 400px; margin-top: 30px; }
+canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+}
+
+/* ===== LIGHT THEME ===== */
+body.light {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+body.light table {
+  background: white;
+}
+
+body.light th {
+  background: #f1f5f9;
+}
+
+body.light input {
+  background: white;
+  color: black;
 }
