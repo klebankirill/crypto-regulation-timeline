@@ -211,3 +211,6 @@ canvas {
 .logo {
   cursor: pointer;
 }
+#chartContainer {
+  height: 400px;
+}
