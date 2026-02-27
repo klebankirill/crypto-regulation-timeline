@@ -124,6 +124,12 @@ td {
 .red { color: #ef4444; font-weight: 600; }
 .star { cursor: pointer; }
 
+/* ===== SORT ARROWS ===== */
+th span {
+  font-size: 12px;
+  margin-left: 4px;
+}
+
 /* ===== PORTFOLIO CARD ===== */
 #portfolioTab {
   margin-top: 20px;
@@ -134,7 +140,11 @@ td {
 }
 
 /* ===== CHART ===== */
-#chartContainer { height: 400px; margin-top: 30px; }
+#chartContainer { 
+  height: 400px; 
+  margin-top: 30px; 
+}
+
 canvas {
   width: 100%;
   height: 100%;
@@ -160,4 +170,19 @@ body.light th {
 body.light input {
   background: white;
   color: black;
+}
+
+/* ===== BUTTONS IN PORTFOLIO ===== */
+#portfolioTab button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #ef4444;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#portfolioTab button:hover {
+  background: #dc2626;
 }
