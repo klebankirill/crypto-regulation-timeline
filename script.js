@@ -124,8 +124,21 @@ async function loadChart(id) {
 }
 
 function addToPortfolio() {
-  const coin = document.getElementById("coinInput").value;
+  const coin = document.getElementById("coinInput").value.trim().toLowerCase();
   const amount = parseFloat(document.getElementById("amountInput").value);
+
+  if (!coin || isNaN(amount) || amount <= 0) {
+    alert("Введите корректные данные");
+    return;
+  }
+
+  // Проверяем, существует ли такая монета
+  const exists = coins.find(c => c.id === coin);
+
+  if (!exists) {
+    alert("Такой монеты нет. Используй id (например: bitcoin)");
+    return;
+  }
 
   portfolio.push({ coin, amount });
   localStorage.setItem("portfolio", JSON.stringify(portfolio));
