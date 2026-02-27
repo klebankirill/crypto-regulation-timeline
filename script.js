@@ -159,10 +159,38 @@ function renderPortfolio() {
   });
 }
 
-function removePortfolio(i) {
-  portfolio.splice(i, 1);
-  localStorage.setItem("portfolio", JSON.stringify(portfolio));
-  renderPortfolio();
+async function renderPortfolio() {
+  portfolioTable.innerHTML = "";
+  let total = 0;
+
+  for (let i = 0; i < portfolio.length; i++) {
+    const asset = portfolio[i];
+
+    try {
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`
+      );
+
+      const data = await res.json();
+      const price = data[asset.coin]?.usd || 0;
+      const value = price * asset.amount;
+      total += value;
+
+      portfolioTable.innerHTML += `
+        <tr>
+          <td>${asset.coin}</td>
+          <td>${asset.amount}</td>
+          <td>$${value.toFixed(2)}</td>
+          <td><button onclick="removePortfolio(${i})">X</button></td>
+        </tr>
+      `;
+    } catch (error) {
+      console.error("Portfolio error:", error);
+    }
+  }
+
+  document.getElementById("portfolioTotal").innerText =
+    "Общая стоимость: $" + total.toFixed(2);
 }
 
 function switchTab(tab) {
@@ -180,7 +208,6 @@ fetchCoins();
 renderPortfolio();
 setInterval(fetchCoins, 60000);
 
-}
 function goHome() {
   switchTab('market');
   window.scrollTo({ top: 0, behavior: "smooth" });
