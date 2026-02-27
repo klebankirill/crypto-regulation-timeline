@@ -1,64 +1,88 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Crypto Tracker</title>
+  <title>Crypto Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <div class="header">
-    <h1 class="logo" onclick="goHome()">Crypto <span>Tracker</span></h1>
-
-    <div class="nav-buttons">
-      <button class="nav-btn" onclick="switchTab('market')">Market</button>
-      <button class="nav-btn" onclick="switchTab('portfolio')">Portfolio</button>
-    </div>
+<div class="header">
+  <div class="logo" onclick="goHome()">
+    <span>Crypto Tracker</span>
   </div>
-
-  <!-- SEARCH -->
-  <div class="search-wrapper">
-    <input type="text" id="search" placeholder="🔎 Search cryptocurrency...">
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="switchTab('market')">Market</button>
+    <button class="nav-btn" onclick="switchTab('portfolio')">Portfolio</button>
+    <button class="nav-btn theme-btn" onclick="toggleTheme()">🌙</button>
   </div>
+</div>
 
-  <!-- MARKET -->
-  <div id="marketTab">
-    <table>
-      <thead>
-        <tr>
-          <th onclick="sortBy('name')">Coin ⬍</th>
-          <th onclick="sortBy('price')">Price ⬍</th>
-          <th onclick="sortBy('change1h')">1h % ⬍</th>
-          <th onclick="sortBy('change24h')">24h % ⬍</th>
-          <th onclick="sortBy('change7d')">7d % ⬍</th>
-        </tr>
-      </thead>
-      <tbody id="cryptoTable"></tbody>
-    </table>
-  </div>
+<div class="search-wrapper">
+  <input type="text" id="search" placeholder="🔎 Search cryptocurrency...">
+</div>
 
-  <!-- PORTFOLIO -->
-  <div id="portfolioTab" style="display:none;">
-    <h2>My Portfolio</h2>
+<div id="marketTab">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>★</th>
+        <th>Монета</th>
 
-    <div class="portfolio-inputs">
-      <input type="text" id="coinInput" placeholder="Bitcoin">
-      <input type="number" id="amountInput" placeholder="Количество">
-      <button onclick="addAsset()">Добавить</button>
-    </div>
+        <th onclick="sortBy('price')">
+          Цена <span id="sort-price"></span>
+        </th>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Coin</th>
-          <th>Amount</th>
-        </tr>
-      </thead>
-      <tbody id="portfolioTable"></tbody>
-    </table>
-  </div>
+        <th onclick="sortBy('market_cap')">
+          Market Cap <span id="sort-market_cap"></span>
+        </th>
 
-  <script src="script.js"></script>
+        <th onclick="sortBy('change_1h')">
+          1h % <span id="sort-change_1h"></span>
+        </th>
+
+        <th onclick="sortBy('change_24h')">
+          24h % <span id="sort-change_24h"></span>
+        </th>
+
+        <th onclick="sortBy('change_7d')">
+          7d % <span id="sort-change_7d"></span>
+        </th>
+      </tr>
+    </thead>
+    <tbody id="cryptoTable"></tbody>
+  </table>
+</div>
+
+<div id="portfolioTab" style="display:none;">
+  <h2>My Portfolio</h2>
+
+  <input id="coinInput" placeholder="bitcoin">
+  <input id="amountInput" type="number" placeholder="Количество">
+  <button onclick="addToPortfolio()">Добавить</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Монета</th>
+        <th>Количество</th>
+        <th>Стоимость</th>
+        <th>X</th>
+      </tr>
+    </thead>
+    <tbody id="portfolioTable"></tbody>
+  </table>
+
+  <h3 id="portfolioTotal">Общая стоимость: $0</h3>
+</div>
+
+<div id="chartContainer">
+  <canvas id="chartCanvas"></canvas>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
