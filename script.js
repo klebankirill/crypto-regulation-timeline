@@ -7,10 +7,17 @@ let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
 let chart = null;
 
+// Твои API headers
+const headers = {
+  "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
+};
+
+// ==================== Fetch coins ====================
 async function fetchCoins() {
   try {
     const res = await fetch(
-      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1"
+      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1",
+      { headers }
     );
 
     if (!res.ok) throw new Error("API error");
@@ -19,7 +26,7 @@ async function fetchCoins() {
 
     if (!Array.isArray(coins)) return;
 
-    render(coins);
+    renderCoins(coins);
 
   } catch (error) {
     console.error("Ошибка загрузки:", error);
@@ -31,12 +38,11 @@ async function fetchCoins() {
   }
 }
 
-function render(data) {
+// ==================== Render coins ====================
+function renderCoins(data) {
   table.innerHTML = "";
   data.forEach((coin, index) => {
-    const changeClass =
-      coin.price_change_percentage_24h > 0 ? "green" : "red";
-
+    const changeClass = coin.price_change_percentage_24h > 0 ? "green" : "red";
     const star = favorites.includes(coin.id) ? "⭐" : "☆";
 
     table.innerHTML += `
@@ -45,15 +51,14 @@ function render(data) {
         <td class="star" onclick="toggleFavorite(event,'${coin.id}')">${star}</td>
         <td>${coin.name}</td>
         <td>$${coin.current_price}</td>
-        <td class="${changeClass}">
-          ${coin.price_change_percentage_24h.toFixed(2)}%
-        </td>
+        <td class="${changeClass}">${coin.price_change_percentage_24h.toFixed(2)}%</td>
         <td>$${coin.market_cap.toLocaleString()}</td>
       </tr>
     `;
   });
 }
 
+// ==================== Toggle favorite ====================
 function toggleFavorite(e, id) {
   e.stopPropagation();
   if (favorites.includes(id)) {
@@ -62,22 +67,23 @@ function toggleFavorite(e, id) {
     favorites.push(id);
   }
   localStorage.setItem("favorites", JSON.stringify(favorites));
-  render(coins);
+  renderCoins(coins);
 }
 
+// ==================== Search ====================
 searchInput.addEventListener("input", () => {
   const value = searchInput.value.toLowerCase();
-  const filtered = coins.filter(c =>
-    c.name.toLowerCase().includes(value)
-  );
-  render(filtered);
+  const filtered = coins.filter(c => c.name.toLowerCase().includes(value));
+  renderCoins(filtered);
 });
 
+// ==================== Sort ====================
 function sortBy(key) {
   coins.sort((a, b) => b[key] - a[key]);
-  render(coins);
+  renderCoins(coins);
 }
 
+// ==================== Load chart ====================
 async function loadChart(id) {
   try {
     switchTab("market");
@@ -86,7 +92,8 @@ async function loadChart(id) {
     if (!canvas) return;
 
     const res = await fetch(
-      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`
+      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`,
+      { headers }
     );
 
     if (!res.ok) throw new Error("Chart API error");
@@ -95,9 +102,7 @@ async function loadChart(id) {
     if (!data.prices || data.prices.length === 0) return;
 
     const prices = data.prices.map(p => p[1]);
-    const labels = data.prices.map(p =>
-      new Date(p[0]).toLocaleDateString()
-    );
+    const labels = data.prices.map(p => new Date(p[0]).toLocaleDateString());
 
     if (chart) {
       chart.destroy();
@@ -128,6 +133,7 @@ async function loadChart(id) {
   }
 }
 
+// ==================== Portfolio ====================
 function addToPortfolio() {
   const coin = document.getElementById("coinInput").value.trim().toLowerCase();
   const amount = parseFloat(document.getElementById("amountInput").value);
@@ -137,9 +143,7 @@ function addToPortfolio() {
     return;
   }
 
-  // Проверяем, существует ли такая монета
   const exists = coins.find(c => c.id === coin);
-
   if (!exists) {
     alert("Такой монеты нет. Используй id (например: bitcoin)");
     return;
@@ -148,34 +152,6 @@ function addToPortfolio() {
   portfolio.push({ coin, amount });
   localStorage.setItem("portfolio", JSON.stringify(portfolio));
   renderPortfolio();
-}
-
-function renderPortfolio() {
-  portfolioTable.innerHTML = "";
-  let total = 0;
-
-  portfolio.forEach(async (asset, index) => {
-    if (!asset.coin) continue;
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`
-    );
-    const data = await res.json();
-    const price = data[asset.coin]?.usd || 0;
-    const value = price * asset.amount;
-    total += value;
-
-    portfolioTable.innerHTML += `
-      <tr>
-        <td>${asset.coin}</td>
-        <td>${asset.amount}</td>
-        <td>$${value.toFixed(2)}</td>
-        <td><button onclick="removePortfolio(${index})">X</button></td>
-      </tr>
-    `;
-
-    document.getElementById("portfolioTotal").innerText =
-      "Общая стоимость: $" + total.toFixed(2);
-  });
 }
 
 async function renderPortfolio() {
@@ -187,9 +163,9 @@ async function renderPortfolio() {
 
     try {
       const res = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`
+        `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`,
+        { headers }
       );
-
       const data = await res.json();
       const price = data[asset.coin]?.usd || 0;
       const value = price * asset.amount;
@@ -212,6 +188,13 @@ async function renderPortfolio() {
     "Общая стоимость: $" + total.toFixed(2);
 }
 
+function removePortfolio(index) {
+  portfolio.splice(index, 1);
+  localStorage.setItem("portfolio", JSON.stringify(portfolio));
+  renderPortfolio();
+}
+
+// ==================== Tabs ====================
 function switchTab(tab) {
   const market = document.getElementById("marketTab");
   const portfolio = document.getElementById("portfolioTab");
@@ -219,27 +202,23 @@ function switchTab(tab) {
   market.style.display = tab === "market" ? "block" : "none";
   portfolio.style.display = tab === "portfolio" ? "block" : "none";
 
-  // если вернулись на market — обновить размер графика
   if (tab === "market" && chart) {
-    setTimeout(() => {
-      chart.resize();
-    }, 200);
+    setTimeout(() => chart.resize(), 200);
   }
 }
 
+// ==================== Theme ====================
 function toggleTheme() {
   document.body.classList.toggle("light");
 }
 
-fetchCoins();
-renderPortfolio();
-setInterval(fetchCoins, 180000); // каждые 3 минуты
-
+// ==================== Home button ====================
 function goHome() {
   switchTab('market');
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-headers: {
-  "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
-}
+// ==================== Init ====================
+fetchCoins();
+renderPortfolio();
+setInterval(fetchCoins, 180000); // каждые 3 минуты
