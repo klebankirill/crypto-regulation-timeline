@@ -1,5 +1,4 @@
 let chart = null;
-let coins = [];
 
 const table = document.getElementById("cryptoTable");
 const searchInput = document.getElementById("search");
