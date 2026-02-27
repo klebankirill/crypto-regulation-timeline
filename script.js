@@ -80,6 +80,8 @@ function sortBy(key) {
 
 async function loadChart(id) {
   try {
+    switchTab("market");
+
     const canvas = document.getElementById("chartCanvas");
     if (!canvas) return;
 
@@ -90,25 +92,26 @@ async function loadChart(id) {
     if (!res.ok) throw new Error("Chart API error");
 
     const data = await res.json();
-
-    if (!data.prices) return;
+    if (!data.prices || data.prices.length === 0) return;
 
     const prices = data.prices.map(p => p[1]);
     const labels = data.prices.map(p =>
       new Date(p[0]).toLocaleDateString()
     );
 
-    if (chart instanceof Chart) {
+    if (chart) {
       chart.destroy();
+      chart = null;
     }
 
-    chart = new Chart(canvas, {
+    chart = new Chart(canvas.getContext("2d"), {
       type: "line",
       data: {
         labels,
         datasets: [{
           label: id.toUpperCase(),
           data: prices,
+          borderWidth: 2,
           tension: 0.3
         }]
       },
@@ -117,6 +120,8 @@ async function loadChart(id) {
         maintainAspectRatio: false
       }
     });
+
+    setTimeout(() => chart.resize(), 200);
 
   } catch (error) {
     console.error("Chart error:", error);
