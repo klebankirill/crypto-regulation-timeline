@@ -1,41 +1,72 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Crypto Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <title>Crypto Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<h1>💰 Crypto Tracker</h1>
+<div class="header">
+  <div class="logo" onclick="goHome()">
+    <span>Crypto Tracker</span>
+  </div>
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="switchTab('market')">Market</button>
+    <button class="nav-btn" onclick="switchTab('portfolio')">Portfolio</button>
+    <button class="nav-btn theme-btn" onclick="toggleTheme()">🌙</button>
+  </div>
+</div>
 
-<table id="cryptoTable">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>★</th>
-      <th>Монета</th>
-      <th onclick="sortBy('price')">Цена</th>
-      <th onclick="sortBy('market_cap')">Market Cap</th>
-      <th onclick="sortBy('change_1h')">1h %</th>
-      <th onclick="sortBy('change_24h')">24h %</th>
-      <th onclick="sortBy('change_7d')">7d %</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<div class="search-wrapper">
+  <input type="text" id="search" placeholder="🔎 Search cryptocurrency...">
+</div>
 
-<h2>📊 График</h2>
-<canvas id="priceChart"></canvas>
+<div id="marketTab">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>★</th>
+        <th onclick="sortBy('name')">Монета <span id="sort-name"></span></th>
+        <th onclick="sortBy('price')">Цена <span id="sort-price"></span></th>
+        <th onclick="sortBy('market_cap')">Market Cap <span id="sort-market_cap"></span></th>
+        <th onclick="sortBy('change_1h')">1h % <span id="sort-change_1h"></span></th>
+        <th onclick="sortBy('change_24h')">24h % <span id="sort-change_24h"></span></th>
+        <th onclick="sortBy('change_7d')">7d % <span id="sort-change_7d"></span></th>
+      </tr>
+    </thead>
+    <tbody id="cryptoTable"></tbody>
+  </table>
+</div>
 
-<h2>💼 Портфель</h2>
-<input type="text" id="coinInput" placeholder="bitcoin">
-<input type="number" id="amountInput" placeholder="Количество">
-<button onclick="addToPortfolio()">Добавить</button>
+<div id="portfolioTab" style="display:none;">
+  <h2>My Portfolio</h2>
 
-<ul id="portfolioList"></ul>
-<p id="totalValue"></p>
+  <input id="coinInput" placeholder="bitcoin">
+  <input id="amountInput" type="number" placeholder="Количество">
+  <button onclick="addToPortfolio()">Добавить</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Монета</th>
+        <th>Количество</th>
+        <th>Стоимость</th>
+        <th>X</th>
+      </tr>
+    </thead>
+    <tbody id="portfolioTable"></tbody>
+  </table>
+
+  <h3 id="portfolioTotal">Общая стоимость: $0</h3>
+</div>
+
+<div id="chartContainer">
+  <canvas id="chartCanvas"></canvas>
+</div>
 
 <script src="script.js"></script>
 </body>
