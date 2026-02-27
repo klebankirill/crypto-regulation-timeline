@@ -8,11 +8,24 @@ let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
 let chart;
 
 async function fetchCoins() {
-  const res = await fetch(
-    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1"
-  );
-  coins = await res.json();
-  render(coins);
+  try {
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1"
+    );
+
+    if (!res.ok) throw new Error("API error");
+
+    coins = await res.json();
+    render(coins);
+
+  } catch (error) {
+    console.error("Ошибка загрузки:", error);
+    table.innerHTML = `
+      <tr>
+        <td colspan="6">⚠️ Не удалось загрузить данные. Попробуйте позже.</td>
+      </tr>
+    `;
+  }
 }
 
 function render(data) {
@@ -63,28 +76,36 @@ function sortBy(key) {
 }
 
 async function loadChart(id) {
-  const res = await fetch(
-    `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`
-  );
-  const data = await res.json();
+  try {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=7`
+    );
 
-  const prices = data.prices.map(p => p[1]);
-  const labels = data.prices.map(p =>
-    new Date(p[0]).toLocaleDateString()
-  );
+    if (!res.ok) throw new Error("Chart error");
 
-  if (chart) chart.destroy();
+    const data = await res.json();
 
-  chart = new Chart(document.getElementById("chartCanvas"), {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: id,
-        data: prices
-      }]
-    }
-  });
+    const prices = data.prices.map(p => p[1]);
+    const labels = data.prices.map(p =>
+      new Date(p[0]).toLocaleDateString()
+    );
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(document.getElementById("chartCanvas"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: id,
+          data: prices
+        }]
+      }
+    });
+
+  } catch (error) {
+    console.error("Ошибка графика:", error);
+  }
 }
 
 function addToPortfolio() {
