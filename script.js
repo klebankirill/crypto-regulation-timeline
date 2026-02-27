@@ -155,6 +155,7 @@ function renderPortfolio() {
   let total = 0;
 
   portfolio.forEach(async (asset, index) => {
+    if (!asset.coin) continue;
     const res = await fetch(
       `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`
     );
