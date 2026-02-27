@@ -26,19 +26,33 @@
 
 <div id="marketTab">
   <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>★</th>
-        <th onclick="sortBy('name')">Монета</th>
-        <th onclick="sortBy('current_price')">Цена</th>
-        <th onclick="sortBy('price_change_percentage_24h')">24h %</th>
-        <th onclick="sortBy('market_cap')">Market Cap</th>
-      </tr>
-    </thead>
-    <tbody id="cryptoTable"></tbody>
-  </table>
-</div>
+   <thead>
+  <tr>
+    <th>#</th>
+    <th>★</th>
+    <th>Монета</th>
+
+    <th onclick="sortBy('price')">
+      Цена <span id="sort-price"></span>
+    </th>
+
+    <th onclick="sortBy('market_cap')">
+      Market Cap <span id="sort-market_cap"></span>
+    </th>
+
+    <th onclick="sortBy('change_1h')">
+      1h % <span id="sort-change_1h"></span>
+    </th>
+
+    <th onclick="sortBy('change_24h')">
+      24h % <span id="sort-change_24h"></span>
+    </th>
+
+    <th onclick="sortBy('change_7d')">
+      7d % <span id="sort-change_7d"></span>
+    </th>
+  </tr>
+</thead>
 
 <div id="portfolioTab" style="display:none;">
   <h2>My Portfolio</h2>
