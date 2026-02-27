@@ -238,3 +238,7 @@ function goHome() {
   switchTab('market');
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+headers: {
+  "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
+}
