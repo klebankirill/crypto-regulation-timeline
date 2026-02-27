@@ -7,7 +7,7 @@ let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
 
 const headers = {
-  "x-cg-demo-api-key": "CG-XXXXXXXXXXXXXXXXXXXXXXXX"
+  "x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"
 };
 
 async function fetchCoins() {
