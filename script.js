@@ -129,6 +129,15 @@ async function loadChart(id){
   } catch (error) {
     console.error(error);
   }
+}
+
+function addToPortfolio(){
+  const coin=document.getElementById("coinInput").value.toLowerCase();
+  const amount=parseFloat(document.getElementById("amountInput").value);
+  if(!coin||!amount) return;
+
+  portfolio.push({coin,amount});
+  localStorage.setItem("portfolio",JSON.stringify(portfolio));
   renderPortfolio();
 }
 
@@ -139,7 +148,7 @@ async function renderPortfolio(){
   for(let i=0;i<portfolio.length;i++){
     const asset=portfolio[i];
     const res=await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${asset.coin}&vs_currencies=usd`,
+      `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(asset.coin)}&vs_currencies=usd`,
       { headers }
     );
     const data=await res.json();
