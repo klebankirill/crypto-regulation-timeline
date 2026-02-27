@@ -1,27 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crypto Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="script.js" defer></script>
 </head>
 <body>
 
 <div class="header">
-  <div class="logo" onclick="goHome()">
+  <div class="logo" id="logoBtn">
     <span>Crypto Tracker</span>
   </div>
   <div class="nav-buttons">
-    <button class="nav-btn" onclick="switchTab('market')">Market</button>
-    <button class="nav-btn" onclick="switchTab('portfolio')">Portfolio</button>
-    <button class="nav-btn theme-btn" onclick="toggleTheme()">🌙</button>
+    <button class="nav-btn" data-tab="market">Market</button>
+    <button class="nav-btn" data-tab="portfolio">Portfolio</button>
+    <button class="nav-btn theme-btn" id="themeBtn" aria-label="Переключить тему">🌙</button>
   </div>
 </div>
 
 <div class="search-wrapper">
-  <input type="text" id="search" placeholder="🔎 Search cryptocurrency...">
+  <input type="text" id="search" placeholder="🔎 Search cryptocurrency..." autocomplete="off">
 </div>
 
 <div id="marketTab">
@@ -32,23 +34,23 @@
         <th>★</th>
         <th>Монета</th>
 
-        <th onclick="sortBy('price')">
+        <th data-sort="price">
           Цена <span id="sort-price"></span>
         </th>
 
-        <th onclick="sortBy('market_cap')">
+        <th data-sort="market_cap">
           Market Cap <span id="sort-market_cap"></span>
         </th>
 
-        <th onclick="sortBy('change_1h')">
+        <th data-sort="change_1h">
           1h % <span id="sort-change_1h"></span>
         </th>
 
-        <th onclick="sortBy('change_24h')">
+        <th data-sort="change_24h">
           24h % <span id="sort-change_24h"></span>
         </th>
 
-        <th onclick="sortBy('change_7d')">
+        <th data-sort="change_7d">
           7d % <span id="sort-change_7d"></span>
         </th>
       </tr>
@@ -61,8 +63,8 @@
   <h2>My Portfolio</h2>
 
   <input id="coinInput" placeholder="bitcoin">
-  <input id="amountInput" type="number" placeholder="Количество">
-  <button onclick="addToPortfolio()">Добавить</button>
+  <input id="amountInput" type="number" min="0" step="any" placeholder="Количество">
+  <button id="addPortfolioBtn">Добавить</button>
 
   <table>
     <thead>
@@ -83,6 +85,5 @@
   <canvas id="chartCanvas"></canvas>
 </div>
 
-<script src="script.js"></script>
 </body>
 </html>
