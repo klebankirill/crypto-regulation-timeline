@@ -180,7 +180,7 @@ fetchCoins();
 renderPortfolio();
 setInterval(fetchCoins, 60000);
 
-}
+
 function goHome() {
   switchTab('market');
   window.scrollTo({ top: 0, behavior: "smooth" });
