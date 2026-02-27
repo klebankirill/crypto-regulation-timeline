@@ -1,5 +1,3 @@
-let chart = null;
-
 const table = document.getElementById("cryptoTable");
 const searchInput = document.getElementById("search");
 const portfolioTable = document.getElementById("portfolioTable");
@@ -7,7 +5,7 @@ const portfolioTable = document.getElementById("portfolioTable");
 let coins = [];
 let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 let portfolio = JSON.parse(localStorage.getItem("portfolio")) || [];
-let chart;
+let chart = null;
 
 async function fetchCoins() {
   try {
