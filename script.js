@@ -12,12 +12,21 @@ const headers = {
 };
 
 async function fetchCoins() {
-  const res = await fetch(
-    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&price_change_percentage=1h,24h,7d",
-    { headers }
-  );
-  coins = await res.json();
-  renderCoins(coins);
+  try {
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&price_change_percentage=1h,24h,7d",
+      { headers }
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to load market data: ${res.status}`);
+    }
+
+    coins = await res.json();
+    renderCoins(coins);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function renderCoins(data) {
