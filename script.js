@@ -207,10 +207,18 @@ async function renderPortfolio() {
 }
 
 function switchTab(tab) {
-  document.getElementById("marketTab").style.display =
-    tab === "market" ? "block" : "none";
-  document.getElementById("portfolioTab").style.display =
-    tab === "portfolio" ? "block" : "none";
+  const market = document.getElementById("marketTab");
+  const portfolio = document.getElementById("portfolioTab");
+
+  market.style.display = tab === "market" ? "block" : "none";
+  portfolio.style.display = tab === "portfolio" ? "block" : "none";
+
+  // если вернулись на market — обновить размер графика
+  if (tab === "market" && chart) {
+    setTimeout(() => {
+      chart.resize();
+    }, 200);
+  }
 }
 
 function toggleTheme() {
