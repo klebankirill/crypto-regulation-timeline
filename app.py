@@ -1,8 +1,6 @@
-import time
 from datetime import datetime
 
 import pandas as pd
-import plotly.express as px
 import requests
 import streamlit as st
 
@@ -22,43 +20,225 @@ def fetch_market_data() -> list[dict]:
     return response.json()
 
 
-@st.cache_data(ttl=120)
-def fetch_prices(ids: list[str]) -> dict:
-    if not ids:
-        return {}
-    joined = ",".join(ids)
-    response = requests.get(
-        f"{API_BASE}/simple/price?ids={joined}&vs_currencies=usd",
-        headers=HEADERS,
-        timeout=20,
+def format_currency(value: float) -> str:
+    if value >= 1_000_000_000_000:
+        return f"${value / 1_000_000_000_000:.2f}T"
+    if value >= 1_000_000_000:
+        return f"${value / 1_000_000_000:.2f}B"
+    if value >= 1_000_000:
+        return f"${value / 1_000_000:.2f}M"
+    return f"${value:,.2f}"
+
+
+def format_percent(value: float | None) -> str:
+    if value is None:
+        return "—"
+    arrow = "▲" if value >= 0 else "▼"
+    return f"{arrow} {abs(value):.2f}%"
+
+
+def as_float(value: float | None) -> float:
+    return float(value) if value is not None else 0.0
+
+
+def render_styles() -> None:
+    st.markdown(
+        """
+        <style>
+            .stApp {
+                background-color: #f4f7fb;
+                color: #111827;
+            }
+            .topbar {
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+                padding: 14px 22px;
+                margin-bottom: 12px;
+            }
+            .brand {
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: 0.2px;
+                margin: 0;
+            }
+            .subtitle {
+                color: #64748b;
+                margin-top: 4px;
+                margin-bottom: 0;
+            }
+            .tabline {
+                display: flex;
+                gap: 24px;
+                margin-top: 16px;
+                font-size: 26px;
+                font-weight: 500;
+            }
+            .tabline .active {
+                color: #0f172a;
+                border-bottom: 3px solid #3b82f6;
+                padding-bottom: 6px;
+            }
+            .tabline .muted {
+                color: #64748b;
+            }
+            .kpi-card {
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 14px;
+                padding: 14px;
+                min-height: 108px;
+            }
+            .kpi-title {
+                color: #64748b;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            .kpi-value {
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+            .chip-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 12px 0 16px;
+            }
+            .chip {
+                border: 1px solid #cbd5e1;
+                border-radius: 999px;
+                background: #ffffff;
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            .pos { color: #16a34a; font-weight: 600; }
+            .neg { color: #dc2626; font-weight: 600; }
+            .muted { color: #64748b; }
+            .table-title {
+                font-size: 18px;
+                font-weight: 700;
+                margin-top: 8px;
+                margin-bottom: 10px;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
-    response.raise_for_status()
-    return response.json()
 
 
-@st.cache_data(ttl=300)
-def fetch_chart_data(coin_id: str) -> list[list[float]]:
-    response = requests.get(
-        f"{API_BASE}/coins/{coin_id}/market_chart?vs_currency=usd&days=7",
-        headers=HEADERS,
-        timeout=20,
+def build_table_data(coins: list[dict]) -> pd.DataFrame:
+    rows = []
+    for coin in coins[:15]:
+        day_change = as_float(coin.get("price_change_percentage_24h"))
+        week_change = as_float(coin.get("price_change_percentage_7d_in_currency"))
+        rows.append(
+            {
+                "#": coin.get("market_cap_rank"),
+                "Coin": f"{coin.get('name')} ({coin.get('symbol', '').upper()})",
+                "Price": f"${coin.get('current_price', 0):,.4f}",
+                "1h %": format_percent(coin.get("price_change_percentage_1h_in_currency")),
+                "24h %": format_percent(day_change),
+                "7d %": format_percent(week_change),
+                "Market Cap": format_currency(float(coin.get("market_cap", 0))),
+                "Volume (24h)": format_currency(float(coin.get("total_volume", 0))),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def metric_cards(coins: list[dict]) -> None:
+    total_cap = sum(float(c.get("market_cap", 0)) for c in coins)
+    total_volume = sum(float(c.get("total_volume", 0)) for c in coins)
+    avg_24h = sum(as_float(c.get("price_change_percentage_24h")) for c in coins[:50]) / 50
+    btc = next((c for c in coins if c.get("id") == "bitcoin"), None)
+    btc_price = float(btc.get("current_price", 0)) if btc else 0.0
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(
+            (
+                '<div class="kpi-card"><div class="kpi-title">Market Cap</div>'
+                f'<div class="kpi-value">{format_currency(total_cap)}</div>'
+                f'<div class="muted">24h avg: {format_percent(avg_24h)}</div></div>'
+            ),
+            unsafe_allow_html=True,
+        )
+    with col2:
+        st.markdown(
+            (
+                '<div class="kpi-card"><div class="kpi-title">24h Volume</div>'
+                f'<div class="kpi-value">{format_currency(total_volume)}</div>'
+                '<div class="muted">Global trading activity</div></div>'
+            ),
+            unsafe_allow_html=True,
+        )
+    with col3:
+        st.markdown(
+            (
+                '<div class="kpi-card"><div class="kpi-title">BTC Price</div>'
+                f'<div class="kpi-value">${btc_price:,.0f}</div>'
+                '<div class="muted">Live spot estimate</div></div>'
+            ),
+            unsafe_allow_html=True,
+        )
+    with col4:
+        fear_greed = 50 + avg_24h * 2.2
+        fear_greed = max(0, min(100, fear_greed))
+        st.markdown(
+            (
+                '<div class="kpi-card"><div class="kpi-title">Fear & Greed</div>'
+                f'<div class="kpi-value">{fear_greed:.0f}</div>'
+                '<div class="muted">Synthetic sentiment gauge</div></div>'
+            ),
+            unsafe_allow_html=True,
+        )
+
+
+def main() -> None:
+    st.set_page_config(page_title="Crypto Tracker", layout="wide")
+    render_styles()
+
+    st.markdown(
+        """
+        <div class="topbar">
+            <p class="brand">Crypto Tracker</p>
+            <p class="subtitle">Track trending crypto assets, market mood, and top movers in one place.</p>
+            <div class="tabline">
+                <span class="active">Trending</span>
+                <span class="muted">Watchlist</span>
+                <span class="muted">Prediction Markets</span>
+                <span class="muted">Most Visited</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    response.raise_for_status()
-    payload = response.json()
-    return payload.get("prices", [])
 
+    try:
+        coins = fetch_market_data()
+    except requests.RequestException:
+        st.error("Failed to load CoinGecko market data. Please try again later.")
+        return
 
-def init_state() -> None:
-    st.session_state.setdefault("favorites", set())
-    st.session_state.setdefault("portfolio", [])
+    metric_cards(coins)
 
+    st.markdown(
+        """
+        <div class="chip-row">
+            <span class="chip">🔥 Top 200</span>
+            <span class="chip">⚡ Most Traded</span>
+            <span class="chip">📈 Momentum</span>
+            <span class="chip">🧠 AI Alert</span>
+            <span class="chip">🛡️ Security Scan</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-def market_page(coins: list[dict]) -> None:
-    st.subheader("Market")
-
-    query = st.text_input("🔎 Search cryptocurrency", placeholder="bitcoin")
+    query = st.text_input("Search coin", placeholder="Type bitcoin, solana, eth...")
     filtered = coins
-    if query:
+    if query.strip():
         q = query.strip().lower()
         filtered = [
             c
@@ -66,146 +246,15 @@ def market_page(coins: list[dict]) -> None:
             if q in c.get("name", "").lower() or q in c.get("symbol", "").lower()
         ]
 
+    st.markdown('<div class="table-title">Trending coins</div>', unsafe_allow_html=True)
     if not filtered:
-        st.info("Нет данных по запросу.")
+        st.warning("Nothing found for your query.")
         return
 
-    df = pd.DataFrame(filtered)
-    df = df[
-        [
-            "id",
-            "name",
-            "symbol",
-            "current_price",
-            "market_cap",
-            "price_change_percentage_1h_in_currency",
-            "price_change_percentage_24h",
-            "price_change_percentage_7d_in_currency",
-        ]
-    ].rename(
-        columns={
-            "id": "ID",
-            "name": "Coin",
-            "symbol": "Symbol",
-            "current_price": "Price (USD)",
-            "market_cap": "Market Cap",
-            "price_change_percentage_1h_in_currency": "1h %",
-            "price_change_percentage_24h": "24h %",
-            "price_change_percentage_7d_in_currency": "7d %",
-        }
-    )
+    table_df = build_table_data(filtered)
+    st.dataframe(table_df, hide_index=True, use_container_width=True)
 
-    st.dataframe(df, use_container_width=True, hide_index=True)
-
-    coin_ids = [coin["id"] for coin in filtered]
-    selected = st.selectbox("Выберите монету для графика", coin_ids)
-
-    fav_col, _ = st.columns([1, 4])
-    with fav_col:
-        is_favorite = selected in st.session_state.favorites
-        if st.button("⭐ Remove" if is_favorite else "☆ Favorite"):
-            if is_favorite:
-                st.session_state.favorites.remove(selected)
-            else:
-                st.session_state.favorites.add(selected)
-            st.rerun()
-
-    st.caption(
-        "Избранное: "
-        + (", ".join(sorted(st.session_state.favorites)) if st.session_state.favorites else "нет")
-    )
-
-    chart_data = fetch_chart_data(selected)
-    if chart_data:
-        chart_df = pd.DataFrame(chart_data, columns=["timestamp", "price"])
-        chart_df["timestamp"] = pd.to_datetime(chart_df["timestamp"], unit="ms")
-        fig = px.line(chart_df, x="timestamp", y="price", title=f"{selected}: 7d price")
-        st.plotly_chart(fig, use_container_width=True)
-
-
-def portfolio_page(coins: list[dict]) -> None:
-    st.markdown("## My Portfolio")
-
-    names = [coin["id"] for coin in coins]
-
-    with st.form("add_asset"):
-       input_col, amount_col, button_col = st.columns([3, 3, 2])
-        with input_col:
-            coin = st.text_input("Монета", placeholder="bitcoin", label_visibility="collapsed")
-        with amount_col:
-            amount_raw = st.text_input("Количество", placeholder="Количество", label_visibility="collapsed")
-        with button_col:
-            st.write("")
-        submitted = st.form_submit_button("Добавить")
-
-     if submitted:
-        try:
-            parsed_amount = float(amount_raw.replace(",", ".")) if amount_raw else 0.0
-        except ValueError:
-            parsed_amount = -1
-        coin = coin.strip().lower()
-        if coin not in names:
-            st.warning("Монета не найдена. Используйте id монеты, например bitcoin.")
-        elif parsed_amount <= 0:
-            st.warning("Количество должно быть больше 0.")
-        else:
-            st.session_state.portfolio.append({"coin": coin, "amount": parsed_amount})
-
-    portfolio = st.session_state.portfolio
-    if not portfolio:
-        st.info("Портфель пуст.")
-        return
-
-    prices = fetch_prices(sorted({item["coin"] for item in portfolio}))
-
-    rows = []
-    total = 0.0
-    for idx, asset in enumerate(portfolio):
-        price = prices.get(asset["coin"], {}).get("usd", 0)
-        value = price * asset["amount"]
-        total += value
-        rows.append(
-            {
-                "#": idx,
-                "Coin": asset["coin"],
-                "Amount": asset["amount"],
-                "Price (USD)": price,
-                "Value (USD)": value,
-            }
-        )
-
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
-    remove_idx = st.number_input("Удалить позицию по индексу #", min_value=0, max_value=len(rows) - 1, step=1)
-    if st.button("Удалить"):
-        st.session_state.portfolio.pop(int(remove_idx))
-        st.rerun()
-
-    st.success(f"Общая стоимость: ${total:,.2f}")
-
-
-def main() -> None:
-    st.set_page_config(page_title="Crypto Dashboard", layout="wide")
-    init_state()
-
-    st.title("Crypto Tracker (Python Edition)")
-    st.caption(f"Updated: {datetime.utcnow():%Y-%m-%d %H:%M UTC}")
-
-    for _ in range(3):
-        try:
-            coins = fetch_market_data()
-            break
-        except requests.RequestException:
-            time.sleep(1)
-    else:
-        st.error("Не удалось загрузить данные CoinGecko. Попробуйте позже.")
-        return
-
-    tab_market, tab_portfolio = st.tabs(["Market", "Portfolio"])
-    with tab_market:
-        market_page(coins)
-    with tab_portfolio:
-        portfolio_page(coins)
+    st.caption(f"Updated: {datetime.utcnow():%Y-%m-%d %H:%M UTC} · Source: CoinGecko")
 
 
 if __name__ == "__main__":
