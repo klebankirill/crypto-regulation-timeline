@@ -1,20 +1,33 @@
-# crypto-regulation-timeline (Python version)
+# crypto-regulation-timeline
 
-Interactive crypto market tracker rebuilt in **Python** with Streamlit.
+Crypto market dashboard with:
+- **Python (FastAPI)** backend
+- **React + Vite + Tailwind CSS** frontend
+- CoinGecko market data integration
 
 ## Run locally
+
+### 1) Backend
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-streamlit run app.py
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Features
+### 2) Frontend
 
-- Live market table (top-100 coins via CoinGecko)
-- Search by name/symbol
-- Favorites list
-- 7-day price chart per selected coin
-- Simple portfolio tracker with total valuation
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend opens on `http://localhost:5173`, backend on `http://localhost:8000`.
+
+## API
+
+- `GET /api/health`
+- `GET /api/market-summary`
+- `GET /api/trending?q=btc&limit=15`
