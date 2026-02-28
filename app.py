@@ -124,16 +124,32 @@ def market_page(coins: list[dict]) -> None:
 
 
 def portfolio_page(coins: list[dict]) -> None:
-    st.subheader("My Portfolio")
+    st.markdown("## My Portfolio")
+
+    names = [coin["id"] for coin in coins]
 
     with st.form("add_asset"):
-        names = [coin["id"] for coin in coins]
-        coin = st.selectbox("Монета", names)
-        amount = st.number_input("Количество", min_value=0.0, step=0.001)
+       input_col, amount_col, button_col = st.columns([3, 3, 2])
+        with input_col:
+            coin = st.text_input("Монета", placeholder="bitcoin", label_visibility="collapsed")
+        with amount_col:
+            amount_raw = st.text_input("Количество", placeholder="Количество", label_visibility="collapsed")
+        with button_col:
+            st.write("")
         submitted = st.form_submit_button("Добавить")
 
-    if submitted and amount > 0:
-        st.session_state.portfolio.append({"coin": coin, "amount": amount})
+     if submitted:
+        try:
+            parsed_amount = float(amount_raw.replace(",", ".")) if amount_raw else 0.0
+        except ValueError:
+            parsed_amount = -1
+        coin = coin.strip().lower()
+        if coin not in names:
+            st.warning("Монета не найдена. Используйте id монеты, например bitcoin.")
+        elif parsed_amount <= 0:
+            st.warning("Количество должно быть больше 0.")
+        else:
+            st.session_state.portfolio.append({"coin": coin, "amount": parsed_amount})
 
     portfolio = st.session_state.portfolio
     if not portfolio:
