@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from typing import Any
 
@@ -14,12 +15,13 @@ MARKET_URL = (
     "&price_change_percentage=1h,24h,7d"
 )
 HEADERS = {"x-cg-demo-api-key": "CG-Hbn4YsqNMrVifvSzqyHAUwK6"}
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "*").split(",") if origin.strip()]
 
 app = FastAPI(title="Crypto Timeline API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
