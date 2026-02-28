@@ -1,20 +1,19 @@
 # crypto-regulation-timeline
 
 Crypto market dashboard with:
-- **Python (FastAPI)** backend
+- **Java (Spring Boot)** backend
 - **React + Vite + Tailwind CSS** frontend
 - CoinGecko market data integration
 
 ## Run locally
 
-### 1) Backend
+### 1) Backend (Java)
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+mvn spring-boot:run
 ```
+
+API starts on `http://localhost:8000`.
 
 ### 2) Frontend
 
@@ -24,7 +23,7 @@ npm install
 npm run dev
 ```
 
-Frontend opens on `http://localhost:5173`, backend on `http://localhost:8000`.
+Frontend opens on `http://localhost:5173`.
 
 ## API
 
@@ -42,14 +41,14 @@ Frontend opens on `http://localhost:5173`, backend on `http://localhost:8000`.
 
 For GitHub Pages build, add repository secret:
 
-- `VITE_API_BASE` — public base URL of deployed FastAPI API (for example `https://<your-api>.onrender.com`).
+- `VITE_API_BASE` — public base URL of deployed API (for example `https://<your-api>.onrender.com`).
 
 ### API (Render/Railway/Fly.io)
 
-Deploy backend as a separate web service from repo root:
+Deploy backend as a separate web service from repo root.
 
-- Build/install: `pip install -r requirements.txt`
-- Start command: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+- Build/install: `mvn -DskipTests package`
+- Start command: `java -jar target/crypto-regulation-timeline-1.0.0.jar`
 
 Required environment variables:
 
@@ -57,11 +56,7 @@ Required environment variables:
   - For strict CORS in production, set to GitHub Pages URL, e.g.
     `https://<github-username>.github.io`
   - For local/dev, you can use `*`.
-
-### Frontend environment variables
-
-- `VITE_API_BASE` (required in production build)
-- `VITE_BASE_PATH` (optional, defaults to `/<repo>/` when running in GitHub Actions)
+- `PORT` — optional, defaults to `8000`.
 
 ### Final public links
 
