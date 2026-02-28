@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000'
+const API_BASE = import.meta.env.VITE_API_BASE ?? (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '')
 
 const tabs = ['Top', 'Trending', 'Watchlist', 'Prediction Markets', 'Most Visited', 'New']
 
@@ -33,6 +33,11 @@ export default function App() {
   useEffect(() => {
     const load = async () => {
       setLoading(true)
+
+      if (!API_BASE) {
+        throw new Error('VITE_API_BASE is required for production builds')
+      }
+
       const [summaryRes, trendingRes] = await Promise.all([
         fetch(`${API_BASE}/api/market-summary`),
         fetch(`${API_BASE}/api/trending?q=${encodeURIComponent(search)}&limit=15`)
@@ -135,10 +140,12 @@ export default function App() {
                   <tr key={`${coin.rank}-${coin.symbol}`} className="border-b last:border-0">
                     <td className="px-4 py-3">{coin.rank}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <img src={coin.image} className="h-6 w-6 rounded-full" alt={coin.symbol} />
-                        <span className="font-semibold">{coin.name}</span>
-                        <span className="text-slate-400">{coin.symbol}</span>
+                      <div className="flex items-center gap-3">
+                        <img src={coin.image} alt={coin.symbol} className="h-6 w-6 rounded-full" />
+                        <div>
+                          <div className="font-semibold">{coin.name}</div>
+                          <div className="text-xs uppercase text-slate-500">{coin.symbol}</div>
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">${Number(coin.price).toLocaleString()}</td>
